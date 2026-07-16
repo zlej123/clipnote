@@ -1,86 +1,101 @@
 # clipnote
 
-**영상을 문서로. 애매한 순간은 실제 화면으로.**
+Turns how-to videos into follow-along documents, with real video frames at the ambiguous moments.
 
-clipnote는 유튜브 how-to 영상을 따라 하기 쉬운 문서로 바꿉니다. "한입 크기로", "국물이 자작해질 때까지", "여기에 끼우고" 처럼 **말로만 들으면 기준을 알 수 없는 순간**을, 그 상태가 실제로 보이는 영상 프레임과 함께 문서로 만들어 줍니다. 요리·DIY·수리·공예·뷰티·운동·소프트웨어 튜토리얼 등 도메인을 가리지 않으며, 결과물은 Notion·Obsidian·Goodnotes로 내보낼 수 있습니다.
+Instructions like *"cut it bite-sized"* or *"simmer until the sauce reduces"* don't mean much as text. clipnote finds the frame where that state is actually visible and embeds it next to the step. It works across domains — cooking, repair, crafts, beauty, fitness, software — and exports to Notion, Obsidian, and Goodnotes.
 
-Google Gemini가 영상을 직접(화면+음성) 분석하므로, 자막이 없거나 말과 행동의 시점이 어긋나는 영상에서도 "그 장면"의 타임스탬프를 찾아냅니다.
+Gemini analyzes the video itself (visuals and audio), so it works on videos without captions, and when the narration runs ahead of the action.
 
-## 설치
+## Example
+
+Generated from [this pork stir-fry video](https://youtu.be/4ioPBiTWm3M). Where the video only says *"simmer until the sauce reduces"*, the document reads:
+
+> 2\. **Simmer the pork in the sauce**
+> - Add 1/2 cup water, 1T brown sugar, 1T syrup to the pan; once dissolved, add the pork. …
+> - 💡 *"Reduced" means:* almost no liquid left on the pan bottom, sauce clinging to the meat with a glossy sheen.
+>
+> ![reduced sauce state](docs/demo/demo-state.jpg)
+
+And *"cut it bite-sized"*:
+
+> - 💡 *"Bite-sized" means:* roughly 3–4 cm cubes.
+>
+> ![bite-sized pork](docs/demo/demo-size.jpg)
+
+## Install
 
 ```bash
 pip install -r requirements.txt   # yt-dlp, reportlab, opencv-python-headless
-# 시스템 의존성: ffmpeg (PATH에 있어야 함)
-export GEMINI_API_KEY=...          # Google AI Studio 키
+# system dependency: ffmpeg (on PATH)
+export GEMINI_API_KEY=...          # Google AI Studio key
 ```
 
-## 사용법
+## Usage
 
-한 명령으로 전체 파이프라인을 실행합니다.
+One command runs the whole pipeline.
 
 ```bash
-# 1) 완전 자동 (ffmpeg 불필요, 스크린샷 대신 타임스탬프 링크)
-python pipeline.py "https://www.youtube.com/watch?v=..." --profile generic --language ko --links-only
+# 1) Fully automatic (no ffmpeg; timestamp links instead of screenshots)
+python pipeline.py "https://www.youtube.com/watch?v=..." --profile generic --language en --links-only
 
-# 2) 스크린샷 포함 + 내보내기
-python pipeline.py "https://www.youtube.com/watch?v=..." --profile recipe --language ko
-#   → 출력된 picker.html에서 가이드별 후보 1장을 고르고 picks.json 저장
-python pipeline.py "https://www.youtube.com/watch?v=..." --profile recipe --language ko \
-    --picks work/frames/<id>/recipe.ko/picks.json --export goodnotes
+# 2) With screenshots + export
+python pipeline.py "https://www.youtube.com/watch?v=..." --profile recipe --language en
+#   → open the printed picker.html, pick one candidate per guide, save picks.json
+python pipeline.py "https://www.youtube.com/watch?v=..." --profile recipe --language en \
+    --picks work/frames/<id>/recipe.en/picks.json --export goodnotes
 ```
 
-주요 옵션: `--profile generic|recipe`, `--language ko|en|ja|...`, `--max-guides N`, `--model`, `--export bundle|obsidian|goodnotes`.
+Options: `--profile generic|recipe`, `--language ko|en|ja|...`, `--max-guides N`, `--model`, `--export bundle|obsidian|goodnotes`.
 
-## 노트 앱 연동
+## Note app export
 
-| 대상 | 방식 | 상태 |
-|------|------|------|
-| Obsidian | Markdown + 첨부 이미지를 vault 폴더로 복사 | 구현 완료 |
-| Goodnotes | 한글 폰트 PDF 생성 → 문서 가져오기/공유로 사용 | 구현 완료 |
-| Notion | `bundle/`(document.md + manifest.json + images) 생성 → File Upload API가 소비 | 업로드 준비 완료 |
+| Target | How | Status |
+|--------|-----|--------|
+| Obsidian | Markdown + attachments copied into a vault folder | done |
+| Goodnotes | PDF (CJK fonts supported) for the import/share flow | done |
+| Notion | `bundle/` (document.md + manifest.json + images) for the File Upload API | upload-ready |
 
 ```bash
-python export.py <id> --profile recipe --language ko --target obsidian --destination /path/to/vault
-python export.py <id> --profile recipe --language ko --target goodnotes
+python export.py <id> --profile recipe --language en --target obsidian --destination /path/to/vault
+python export.py <id> --profile recipe --language en --target goodnotes
 ```
 
-## 다른 곳에서 모듈로 재사용하기
+## Reusing clipnote
 
-재사용 경계는 두 층입니다.
+Two reuse boundaries:
 
-1. **`skill-core/` (언어 중립 자산)** — `profiles/<name>/{prompt.md, schema.json, template.md}` 와 `engine/rules.md`. 어떤 언어·플랫폼이든 그대로 가져다 씁니다. Swift로 iOS 앱을 만들 때도 이 프롬프트/스키마를 공유 자산으로 사용합니다.
-2. **Python 패키지 (analyze/capture/render/export/pipeline)** — **파이썬이 실행되는 곳**에서 재사용합니다.
+1. **`skill-core/`** — language-neutral assets: `profiles/<name>/{prompt.md, schema.json, template.md}` and `engine/rules.md`. Any platform can consume these as data.
+2. **The Python modules** — reusable wherever Python runs.
 
-| 사용처 | 방법 |
-|--------|------|
-| REST API 서버 (Python) | `from pipeline import main` 또는 각 모듈 import / `pip install .` 후 `clipnote` CLI 호출 |
-| 데스크톱 앱 (Python) | 동일 |
-| 다른 파이썬 툴·에이전트 스킬 | 동일 (`SKILL.md` 참고) |
-| **iOS 네이티브 앱** | 파이썬을 직접 import할 수 없음. 위 REST API를 호출하거나, `skill-core/` 자산을 가져가 Swift로 얇게 재구현 |
+| Consumer | How |
+|----------|-----|
+| REST API server | wraps the modules — see [clipnote-server](https://github.com/zlej123/clipnote-server) |
+| Desktop app / Python tools / agent skills | import directly (see `SKILL.md`) |
+| Native iOS/macOS app | call [clipnote-server](https://github.com/zlej123/clipnote-server), or reuse `skill-core/` in Swift (see `docs/apple-brief.md`) |
 
-즉 서버/데스크톱은 이 저장소를 **그대로 모듈로 가져다 쓸 수 있고**, 아이폰은 이 코드를 감싼 API를 호출하거나 `skill-core/`만 공유합니다.
+A browser client lives at [clipnote-extension](https://github.com/zlej123/clipnote-extension) — it captures frames from the YouTube player itself, no server needed.
 
-## 프로파일 추가
+## Adding a domain profile
 
-`skill-core/profiles/<name>/` 에 `prompt.md`(끝에 `{{RULES}}` 포함), `schema.json`, `template.md` 세 파일을 넣으면 새 도메인이 됩니다. 파이프라인 코드는 수정하지 않습니다.
+Drop three files into `skill-core/profiles/<name>/`: `prompt.md` (containing `{{RULES}}`), `schema.json`, `template.md`. No pipeline changes needed.
 
-## 테스트
+## Tests
 
 ```bash
-python -m unittest discover -s tests        # 단위: 계약/정규화/선택/내보내기
-python tests/validate_fixtures.py --online  # 픽스처 URL 접근성 + 층화 검증
-python tests/batch.py                        # 6개 도메인 구조 + 의미 회귀
+python -m unittest discover -s tests        # contract / normalization / selection / export
+python tests/validate_fixtures.py --online  # fixture availability + strata
+python tests/batch.py                        # 6-domain structural + semantic regression
 ```
 
-`tests/fixtures/urls.json` 은 6개 도메인 × 8~12개 영상을 길이/음성/자막/편집/프레이밍/언어 조건으로 층화한 회귀 코퍼스입니다. `tests/evaluations/` 는 후보 프레임 의미 적중 여부의 라벨입니다.
+`tests/fixtures/urls.json` is a regression corpus of 8–12 videos per domain, stratified by length, audio, captions, editing style, framing, and source language.
 
-## 한계
+## Limits
 
-- 공개 영상만 지원. 비용·시간상 30분 이하 권장.
-- Gemini 무료 티어는 대량 배치에서 rate limit에 걸립니다. 기본 모델은 `gemini-flash-lite-latest`.
-- 타임스탬프 정확도는 ±2~3초이며 before/center/after 후보로 보정합니다.
-- 강연·리뷰·브이로그처럼 "보여줄 행동/상태"가 없는 영상에는 적합하지 않습니다.
+- Public videos only; under 30 minutes recommended.
+- Free-tier Gemini rate-limits under batch load. Default model is `gemini-flash-lite-latest`.
+- Timestamps are accurate to about ±2–3 s; the before/center/after candidates cover the gap.
+- Not useful for videos with nothing visual to show (lectures, vlogs, reviews).
 
-## 라이선스
+## License
 
 MIT
