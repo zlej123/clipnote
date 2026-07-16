@@ -24,8 +24,11 @@ via swappable profiles. Output is a portable document that exports to Notion, Ob
 </Do_Not_Use_When>
 
 <Prerequisites>
-- Environment variable `GEMINI_API_KEY` (Google AI Studio key).
-- `ffmpeg` on PATH (frame capture).
+- The clipnote repo on disk. If absent, clone it first:
+  `git clone https://github.com/zlej123/clipnote` and run all commands from that directory.
+- Environment variable `GEMINI_API_KEY` (Google AI Studio key). If missing, ask the user for one
+  (free at https://aistudio.google.com/apikey) — never proceed without it.
+- `ffmpeg` on PATH (frame capture; not needed for `--links-only`).
 - `pip install -r requirements.txt` (yt-dlp, reportlab, opencv-python-headless).
 </Prerequisites>
 

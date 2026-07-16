@@ -1,0 +1,10 @@
+{
+  "name": "clipnote",
+  "version": "0.1.0",
+  "description": "Turn how-to YouTube videos into follow-along documents with real video frames at the ambiguous moments.",
+  "author": { "name": "zlej123", "url": "https://github.com/zlej123" },
+  "homepage": "https://github.com/zlej123/clipnote",
+  "repository": "https://github.com/zlej123/clipnote",
+  "license": "MIT",
+  "keywords": ["youtube", "gemini", "video-to-document", "obsidian", "notion"]
+}

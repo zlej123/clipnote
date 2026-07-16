@@ -1,0 +1,11 @@
+{
+  "name": "clipnote",
+  "owner": { "name": "zlej123", "url": "https://github.com/zlej123" },
+  "plugins": [
+    {
+      "name": "clipnote",
+      "source": "./",
+      "description": "Turn how-to YouTube videos into follow-along documents with real video frames at the ambiguous moments."
+    }
+  ]
+}

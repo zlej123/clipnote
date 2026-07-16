@@ -70,10 +70,19 @@ Two reuse boundaries:
 | Consumer | How |
 |----------|-----|
 | REST API server | wraps the modules — see [clipnote-server](https://github.com/zlej123/clipnote-server) |
-| Desktop app / Python tools / agent skills | import directly (see `SKILL.md`) |
+| Desktop app / Python tools / agent skills | import directly (see `skills/clipnote/SKILL.md`) |
 | Native iOS/macOS app | call [clipnote-server](https://github.com/zlej123/clipnote-server), or reuse `skill-core/` in Swift (see `docs/apple-brief.md`) |
 
 A browser client lives at [clipnote-extension](https://github.com/zlej123/clipnote-extension) — it captures frames from the YouTube player itself, no server needed.
+
+## Use as an agent skill
+
+clipnote ships as an agent skill (`skills/clipnote/SKILL.md`).
+
+- **Claude Code**: `/plugin marketplace add zlej123/clipnote`, then `/plugin install clipnote@clipnote`.
+- **Manual**: copy `skills/clipnote/` into your skills directory (`~/.claude/skills/` or `~/.gjc/skills/`).
+
+The skill clones this repo on first use and asks for a Gemini API key if none is set.
 
 ## Adding a domain profile
 
