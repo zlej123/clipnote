@@ -108,6 +108,18 @@ class ExplicitSelectionTests(unittest.TestCase):
             (path / "vg-1_center.jpg").write_bytes(b"image")
             self.assertIsNone(renderer.choose_frame("vg-1", {}, path))
 
+    def test_client_image_refs_override_disk_frames(self):
+        data = CoreContractTests().valid_data()
+        with tempfile.TemporaryDirectory() as temp:
+            images_dir = Path(temp) / "images"
+            images_dir.mkdir()
+            ctx = renderer.build_context(
+                "video", data, {}, Path(temp) / "no-frames", images_dir,
+                image_refs={"vg-1": "https://cdn.example.com/vg-1.jpg"})
+            guide = ctx["steps"][0]["visual_guides"][0]
+            self.assertTrue(guide["has_screenshot"])
+            self.assertEqual("https://cdn.example.com/vg-1.jpg", guide["screenshot"])
+
     def test_explicit_pick_selects_exact_candidate(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp)

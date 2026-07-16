@@ -109,7 +109,10 @@ def render(tmpl: str, data: dict) -> str:
 
 # ---- 데이터 조립 --------------------------------------------------------------
 def build_context(vid: str, data: dict, picks: dict, source_frames: Path,
-                  images_dir: Path) -> dict:
+                  images_dir: Path, image_refs: dict = None) -> dict:
+    """image_refs: 클라이언트가 직접 캡처·호스팅한 이미지 참조(guide_id -> URL/경로).
+    디스크 프레임보다 우선한다. 서버/확장처럼 프레임이 로컬에 없는 호출자용."""
+    image_refs = image_refs or {}
     duration = data.get("_duration")
     by_step = {}
     for guide in data.get("visual_guides", []):
@@ -133,7 +136,10 @@ def build_context(vid: str, data: dict, picks: dict, source_frames: Path,
                     f"https://youtu.be/{vid}?t={timestamp}"
                     if timestamp is not None else f"https://youtu.be/{vid}"),
             }
-            if timestamp is not None and (duration is None or timestamp < duration):
+            if guide.get("id") in image_refs:
+                guide_ctx["has_screenshot"] = True
+                guide_ctx["screenshot"] = image_refs[guide["id"]]
+            elif timestamp is not None and (duration is None or timestamp < duration):
                 chosen = choose_frame(guide["id"], picks, source_frames)
                 if chosen is not None:
                     dst = images_dir / f"{guide['id']}_{guide.get('type', 'x')}.jpg"
