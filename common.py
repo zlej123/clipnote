@@ -1,0 +1,36 @@
+"""Shared artifact paths and identifiers for profile/language variants."""
+import re
+from pathlib import Path
+
+TOKEN = re.compile(r"^[A-Za-z0-9._-]+$")
+
+
+def validate_token(value: str, label: str) -> str:
+    if not value or not TOKEN.fullmatch(value):
+        raise ValueError(f"잘못된 {label}: {value!r}")
+    return value
+
+VIDEO_ID = re.compile(r"(?:v=|youtu\.be/|shorts/)([\w-]{11})")
+
+
+def video_id(url: str) -> str:
+    match = VIDEO_ID.search(url)
+    if not match:
+        raise ValueError(f"유튜브 URL에서 video id를 찾지 못함: {url}")
+    return match.group(1)
+
+
+def variant_key(profile: str, language: str) -> str:
+    return f"{validate_token(profile, 'profile')}.{validate_token(language, 'language')}"
+
+
+def analysis_file(root: Path, video_id: str, profile: str, language: str) -> Path:
+    return root / "work" / "analyses" / video_id / f"{variant_key(profile, language)}.json"
+
+
+def frames_dir(root: Path, video_id: str, profile: str, language: str) -> Path:
+    return root / "work" / "frames" / video_id / variant_key(profile, language)
+
+
+def output_dir(root: Path, video_id: str, profile: str, language: str) -> Path:
+    return root / "output" / video_id / variant_key(profile, language)

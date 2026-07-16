@@ -1,0 +1,7 @@
+{
+  "video_id":"DRHGDOkQl3c","profile":"generic","language":"ko","reviewer":"agent-vision",
+  "guides":[
+    {"guide_id":"vg-1","selected_slot":"after","candidate_hit":true,"reviewed":true},
+    {"guide_id":"vg-2","selected_slot":"after","candidate_hit":true,"reviewed":true}
+  ]
+}

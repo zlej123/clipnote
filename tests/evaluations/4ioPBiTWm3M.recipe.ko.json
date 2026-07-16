@@ -1,0 +1,8 @@
+{
+  "video_id":"4ioPBiTWm3M","profile":"recipe","language":"ko","reviewer":"agent-vision",
+  "guides":[
+    {"guide_id":"vg-1","selected_slot":"center","candidate_hit":true,"reviewed":true},
+    {"guide_id":"vg-2","selected_slot":"center","candidate_hit":true,"reviewed":true},
+    {"guide_id":"vg-3","selected_slot":"center","candidate_hit":true,"reviewed":true}
+  ]
+}

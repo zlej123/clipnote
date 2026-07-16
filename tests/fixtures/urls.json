@@ -1,0 +1,89 @@
+{
+  "_dimensions": {
+    "length": ["short", "medium", "long"],
+    "audio": ["spoken", "silent"],
+    "captions": ["manual", "auto", "none", "unknown"],
+    "editing": ["continuous", "jump-cut"],
+    "framing": ["hands", "full-body", "screen"],
+    "source_language": ["ko", "en"]
+  },
+  "_comment": "각 도메인 8~12개. 수량보다 strata 조합과 30분 이하 실행 가능성을 우선한다.",
+  "recipe": {
+    "profile": "recipe", "language": "ko", "videos": [
+      {"url":"https://www.youtube.com/watch?v=4ioPBiTWm3M","note":"백종원 제육볶음","strata":{"length":"medium","audio":"spoken","captions":"auto","editing":"continuous","framing":"hands","source_language":"ko"}},
+      {"url":"https://www.youtube.com/watch?v=TA3Uo3a9674","note":"Maangchi tteokbokki","strata":{"length":"medium","audio":"spoken","captions":"manual","editing":"jump-cut","framing":"full-body","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=PFDElc5sfSM","note":"Basics with Babish steak","strata":{"length":"medium","audio":"spoken","captions":"manual","editing":"jump-cut","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=d8RMLGZBuYs","note":"Maangchi detailed tteokbokki","strata":{"length":"long","audio":"spoken","captions":"manual","editing":"jump-cut","framing":"full-body","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=IAgmW_gTxls","note":"Scrambled eggs continuous demo","strata":{"length":"medium","audio":"spoken","captions":"auto","editing":"continuous","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=7GOnZ0-PW6w","note":"백종원 김치찌개 쇼츠","strata":{"length":"short","audio":"spoken","captions":"unknown","editing":"jump-cut","framing":"hands","source_language":"ko"}},
+      {"url":"https://www.youtube.com/watch?v=60anIrLje-E","note":"백종원 김치찌개","strata":{"length":"medium","audio":"spoken","captions":"manual","editing":"jump-cut","framing":"hands","source_language":"ko"}},
+      {"url":"https://www.youtube.com/watch?v=_s-RMTH78a8","note":"무음 티라미수 케이크","strata":{"length":"medium","audio":"silent","captions":"none","editing":"jump-cut","framing":"hands","source_language":"ko"}}
+    ]
+  },
+  "craft": {
+    "profile": "generic", "language": "ko", "videos": [
+      {"url":"https://www.youtube.com/watch?v=GC_Szxdqh2Y","note":"Origami crane baseline","strata":{"length":"medium","audio":"silent","captions":"none","editing":"continuous","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=dMWv-60NQq4","note":"Silent origami crane","strata":{"length":"medium","audio":"silent","captions":"none","editing":"continuous","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/shorts/Ff9BQUkhTZ4","note":"Origami crane short","strata":{"length":"short","audio":"spoken","captions":"auto","editing":"jump-cut","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=T6Dput3ZCaQ","note":"20분 초보 뜨개질","strata":{"length":"long","audio":"spoken","captions":"unknown","editing":"continuous","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=Egp4NRhlMDg","note":"Knit stitch fundamentals","strata":{"length":"medium","audio":"spoken","captions":"auto","editing":"continuous","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/shorts/-kIaNu00a4s","note":"Bowline knot short","strata":{"length":"short","audio":"spoken","captions":"unknown","editing":"continuous","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=Q9NqGd7464U","note":"Bowline knot tutorial","strata":{"length":"short","audio":"spoken","captions":"unknown","editing":"continuous","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=evCGIAIttd4","note":"Beginner drawing compilation","strata":{"length":"medium","audio":"spoken","captions":"auto","editing":"jump-cut","framing":"screen","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=36TMaO1zkCo","note":"매듭 팔찌 만들기","strata":{"length":"medium","audio":"spoken","captions":"unknown","editing":"continuous","framing":"hands","source_language":"ko"}}
+    ]
+  },
+  "diy": {
+    "profile": "generic", "language": "ko", "videos": [
+      {"url":"https://www.youtube.com/watch?v=NBKoUmYCoW0","note":"IKEA MICKE assembly","strata":{"length":"medium","audio":"silent","captions":"unknown","editing":"jump-cut","framing":"screen","source_language":"ko"}},
+      {"url":"https://www.youtube.com/watch?v=lRbX4Zi-V7s","note":"IKEA assembly tips","strata":{"length":"medium","audio":"spoken","captions":"unknown","editing":"jump-cut","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=4cavloun3cc","note":"IKEA wardrobe assembly","strata":{"length":"long","audio":"spoken","captions":"unknown","editing":"continuous","framing":"full-body","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=SYPFon69vKs","note":"Fix leaky faucet","strata":{"length":"short","audio":"spoken","captions":"manual","editing":"jump-cut","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/shorts/Ft9qhSnF5gE","note":"Leaky faucet short","strata":{"length":"short","audio":"spoken","captions":"auto","editing":"jump-cut","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=txJiZYraM40","note":"Fix hose bib faucet","strata":{"length":"medium","audio":"spoken","captions":"unknown","editing":"jump-cut","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=Z05eyAnY7Ek","note":"Patch drywall holes","strata":{"length":"medium","audio":"spoken","captions":"unknown","editing":"jump-cut","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=F7iTv4z1GU8","note":"Drywall patch tutorial","strata":{"length":"medium","audio":"spoken","captions":"unknown","editing":"jump-cut","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=e1TPyTpke9E","note":"ASMR shelf organization","strata":{"length":"medium","audio":"silent","captions":"none","editing":"continuous","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=Ii-3RorobvU","note":"3M drywall patch","strata":{"length":"medium","audio":"spoken","captions":"unknown","editing":"jump-cut","framing":"hands","source_language":"en"}}
+    ]
+  },
+  "beauty": {
+    "profile": "generic", "language": "ko", "videos": [
+      {"url":"https://www.youtube.com/watch?v=VomFLbzlOKY","note":"한국 데일리 메이크업","strata":{"length":"long","audio":"spoken","captions":"unknown","editing":"continuous","framing":"full-body","source_language":"ko"}},
+      {"url":"https://www.youtube.com/watch?v=miczaXlOJ5k","note":"Everyday makeup beginner","strata":{"length":"medium","audio":"spoken","captions":"auto","editing":"jump-cut","framing":"full-body","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=M5cyJIT1liY","note":"Detailed natural makeup","strata":{"length":"long","audio":"spoken","captions":"manual","editing":"jump-cut","framing":"full-body","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=VX6Gu1TVjsg","note":"Dewy natural makeup","strata":{"length":"medium","audio":"spoken","captions":"auto","editing":"jump-cut","framing":"full-body","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=htZPCZVaAiM","note":"Beginner nail art designs","strata":{"length":"medium","audio":"spoken","captions":"auto","editing":"jump-cut","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=6N04TPbpDnM","note":"At-home nail art","strata":{"length":"medium","audio":"spoken","captions":"auto","editing":"jump-cut","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/shorts/tDo0uRYnaoQ","note":"Nail art short","strata":{"length":"short","audio":"silent","captions":"none","editing":"jump-cut","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/shorts/-er3DNMlISo","note":"Quick hairstyle short","strata":{"length":"short","audio":"spoken","captions":"auto","editing":"jump-cut","framing":"full-body","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=8aIsR557hsA","note":"Short hair styles","strata":{"length":"medium","audio":"spoken","captions":"auto","editing":"jump-cut","framing":"full-body","source_language":"en"}}
+    ]
+  },
+  "fitness": {
+    "profile": "generic", "language": "ko", "videos": [
+      {"url":"https://www.youtube.com/watch?v=v7AYKMP6rOE","note":"Yoga complete beginners","strata":{"length":"long","audio":"spoken","captions":"unknown","editing":"continuous","framing":"full-body","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=0eJoUIBhLkE","note":"Gentle beginner yoga","strata":{"length":"long","audio":"spoken","captions":"unknown","editing":"continuous","framing":"full-body","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=RVTvOh1jD00","note":"Full body HIIT silent","strata":{"length":"long","audio":"silent","captions":"none","editing":"jump-cut","framing":"full-body","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=J5VIfgcr5wQ","note":"Dumbbell workout silent","strata":{"length":"long","audio":"silent","captions":"none","editing":"jump-cut","framing":"full-body","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=3N_8ioZ4jdk","note":"Full body cool down","strata":{"length":"medium","audio":"spoken","captions":"unknown","editing":"continuous","framing":"full-body","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=SbURodJWeMM","note":"Five-minute stretch","strata":{"length":"medium","audio":"spoken","captions":"unknown","editing":"continuous","framing":"full-body","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=8XNpAg5mDS8","note":"No-talking stretch","strata":{"length":"long","audio":"silent","captions":"unknown","editing":"continuous","framing":"full-body","source_language":"en"}},
+      {"url":"https://www.youtube.com/shorts/DRHGDOkQl3c","note":"Flexibility short","strata":{"length":"short","audio":"silent","captions":"none","editing":"jump-cut","framing":"hands","source_language":"en"}},
+      {"url":"https://www.youtube.com/shorts/n144BZEEBkA","note":"Yoga flow short","strata":{"length":"short","audio":"silent","captions":"unknown","editing":"jump-cut","framing":"full-body","source_language":"en"}}
+    ]
+  },
+  "software": {
+    "profile": "generic", "language": "ko", "videos": [
+      {"url":"https://www.youtube.com/watch?v=7rLSZYiz7qE","note":"Excel basics overview","strata":{"length":"short","audio":"spoken","captions":"unknown","editing":"continuous","framing":"screen","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=W8qRG6I26C0","note":"Record Figma prototype","strata":{"length":"medium","audio":"spoken","captions":"unknown","editing":"jump-cut","framing":"screen","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=l1-1aVgFth4","note":"Excel learning guide","strata":{"length":"short","audio":"spoken","captions":"unknown","editing":"continuous","framing":"screen","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=N-AKU3CFdNo","note":"Excel channel overview","strata":{"length":"short","audio":"spoken","captions":"unknown","editing":"jump-cut","framing":"screen","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=yytWGELNeOI","note":"한국어 파이썬 기초","strata":{"length":"long","audio":"spoken","captions":"unknown","editing":"jump-cut","framing":"screen","source_language":"ko"}},
+      {"url":"https://www.youtube.com/watch?v=tU1fvfbNBtY","note":"Record prototype in Figma short","strata":{"length":"short","audio":"spoken","captions":"unknown","editing":"jump-cut","framing":"screen","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=nZ57MPVbHUg","note":"Figma in under 10 minutes","strata":{"length":"medium","audio":"spoken","captions":"unknown","editing":"jump-cut","framing":"screen","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=t-6Y3tOZpiY","note":"Figma 10 minute beginner tutorial","strata":{"length":"medium","audio":"spoken","captions":"unknown","editing":"continuous","framing":"screen","source_language":"en"}},
+      {"url":"https://www.youtube.com/watch?v=jQ1sfKIl50E","note":"Figma 13 minute crash course","strata":{"length":"medium","audio":"spoken","captions":"unknown","editing":"jump-cut","framing":"screen","source_language":"en"}}
+    ]
+  }
+}

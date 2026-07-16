@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clipnote"
+version = "0.1.0"
+description = "Turn how-to YouTube videos into follow-along documents with visual guides at ambiguous moments."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = [
+    "yt-dlp>=2026.7.4",
+    "reportlab>=5.0.0",
+    "opencv-python-headless>=5.0.0",
+]
+
+[project.scripts]
+clipnote = "pipeline:main"
+clipnote-analyze = "analyze:main"
+clipnote-capture = "capture:main"
+clipnote-render = "render:main"
+clipnote-export = "export:main"
+
+[tool.setuptools]
+py-modules = ["pipeline", "analyze", "capture", "render", "export", "contract", "common"]
+
+[tool.setuptools.package-data]
+"*" = ["skill-core/**/*"]

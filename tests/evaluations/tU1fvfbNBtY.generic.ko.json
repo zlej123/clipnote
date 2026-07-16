@@ -1,0 +1,8 @@
+{
+  "video_id":"tU1fvfbNBtY","profile":"generic","language":"ko","reviewer":"agent-vision",
+  "guides":[
+    {"guide_id":"vg-1","selected_slot":null,"candidate_hit":false,"reviewed":true,"note":"영상 후보에 Xbox Game Bar 화면이 실제로 표시되지 않음"},
+    {"guide_id":"vg-2","selected_slot":"after","candidate_hit":true,"reviewed":true},
+    {"guide_id":"vg-3","selected_slot":"after","candidate_hit":true,"reviewed":true}
+  ]
+}
