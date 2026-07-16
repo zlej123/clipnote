@@ -1,3 +1,8 @@
+---
+name: clipnote
+description: Turn a how-to YouTube video into a follow-along document where ambiguous spoken instructions ("bite-sized", "until it reduces") are backed by the exact video frames that show them. Use when the user shares a YouTube how-to/tutorial URL and wants a clean visual guide document, optionally exported to Notion/Obsidian/Goodnotes.
+---
+
 # clipnote
 
 <Purpose>
