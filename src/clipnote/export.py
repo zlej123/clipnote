@@ -1,22 +1,26 @@
 #!/usr/bin/env python3
 """Export rendered documents for note applications.
 
-- Portable bundle: stable input for a future Notion OAuth connector.
+- Portable bundle: document.md + manifest.json + images.
 - Obsidian: Markdown and images copied directly into a vault folder.
 - Goodnotes: PDF generated for the platform's document import/share flow.
+- Notion: direct upload via the Notion API (user's own integration token).
 """
 import argparse
 import json
+import mimetypes
+import os
 import re
 import shutil
 import sys
+import urllib.request
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from common import analysis_file, output_dir, variant_key
+from .common import analysis_file, data_root, output_dir, variant_key
 
 sys.stdout.reconfigure(encoding="utf-8")
-HERE = Path(__file__).parent
 
 
 def safe_name(value: str) -> str:
@@ -25,8 +29,8 @@ def safe_name(value: str) -> str:
 
 
 def load_source(video_id: str, profile: str, language: str):
-    analysis_path = analysis_file(HERE, video_id, profile, language)
-    rendered = output_dir(HERE, video_id, profile, language)
+    analysis_path = analysis_file(data_root(), video_id, profile, language)
+    rendered = output_dir(data_root(), video_id, profile, language)
     document = rendered / "document.md"
     if not analysis_path.exists():
         sys.exit(f"분석 결과 없음: {analysis_path}")
@@ -194,29 +198,139 @@ def export_goodnotes(data, rendered: Path, destination: Path,
     return target
 
 
+# ---- Notion ------------------------------------------------------------------
+NOTION_API = "https://api.notion.com/v1"
+NOTION_VERSION = "2022-06-28"
+
+
+def notion_request(path: str, token: str, payload: dict = None,
+                   data: bytes = None, content_type: str = None) -> dict:
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Notion-Version": NOTION_VERSION,
+    }
+    if payload is not None:
+        data = json.dumps(payload).encode()
+        headers["Content-Type"] = "application/json"
+    elif content_type:
+        headers["Content-Type"] = content_type
+    request = urllib.request.Request(
+        f"{NOTION_API}{path}", data=data, headers=headers,
+        method="POST" if data is not None else "GET")
+    try:
+        with urllib.request.urlopen(request, timeout=120) as response:
+            return json.loads(response.read().decode())
+    except urllib.error.HTTPError as error:
+        detail = error.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"Notion API {error.code}: {detail[:500]}") from error
+
+
+def notion_upload_image(image_path: Path, token: str) -> str:
+    """Upload a local image; returns the file_upload id."""
+    created = notion_request("/file_uploads", token, payload={})
+    upload_id = created["id"]
+    boundary = uuid.uuid4().hex
+    mime = mimetypes.guess_type(image_path.name)[0] or "image/jpeg"
+    body = (
+        f"--{boundary}\r\n"
+        f'Content-Disposition: form-data; name="file"; filename="{image_path.name}"\r\n'
+        f"Content-Type: {mime}\r\n\r\n"
+    ).encode() + image_path.read_bytes() + f"\r\n--{boundary}--\r\n".encode()
+    notion_request(f"/file_uploads/{upload_id}/send", token, data=body,
+                   content_type=f"multipart/form-data; boundary={boundary}")
+    return upload_id
+
+
+def _rich(text: str, link: str = None) -> list:
+    item = {"type": "text", "text": {"content": text[:2000]}}
+    if link:
+        item["text"]["link"] = {"url": link}
+    return [item]
+
+
+def build_notion_blocks(data: dict, video_id: str, image_ids: dict) -> list:
+    """Analysis JSON -> Notion block list. image_ids: guide_id -> file_upload id."""
+    blocks = []
+    if data.get("summary"):
+        blocks.append({"type": "paragraph",
+                       "paragraph": {"rich_text": _rich(data["summary"])}})
+    blocks.append({"type": "paragraph", "paragraph": {"rich_text": _rich(
+        "YouTube 원본", f"https://youtu.be/{video_id}")}})
+
+    materials = data.get("materials") or []
+    if materials:
+        blocks.append({"type": "heading_2",
+                       "heading_2": {"rich_text": _rich("준비물")}})
+        for material in materials:
+            blocks.append({"type": "bulleted_list_item", "bulleted_list_item": {
+                "rich_text": _rich(f"{material.get('name', '')} {material.get('amount', '')}")}})
+
+    guides_by_step = {}
+    for guide in data.get("visual_guides", []):
+        guides_by_step.setdefault(guide.get("step_id"), []).append(guide)
+
+    blocks.append({"type": "heading_2", "heading_2": {"rich_text": _rich("순서")}})
+    for step in data.get("steps", []):
+        blocks.append({"type": "numbered_list_item", "numbered_list_item": {
+            "rich_text": _rich(f"{step.get('summary', '')} — {step.get('detail', '')}")}})
+        for guide in guides_by_step.get(step.get("id"), []):
+            blocks.append({"type": "quote", "quote": {"rich_text": _rich(
+                f"💡 '{guide.get('phrase', '')}' 기준: {guide.get('guide_text', '')}")}})
+            timestamp = guide.get("best_visual_timestamp")
+            if guide.get("id") in image_ids:
+                blocks.append({"type": "image", "image": {
+                    "type": "file_upload",
+                    "file_upload": {"id": image_ids[guide["id"]]}}})
+            elif timestamp is not None:
+                blocks.append({"type": "paragraph", "paragraph": {"rich_text": _rich(
+                    f"▶ 영상 {timestamp // 60}:{timestamp % 60:02d}에서 직접 확인",
+                    f"https://youtu.be/{video_id}?t={timestamp}")}})
+    return blocks
+
+
+def export_notion(data: dict, rendered: Path, video_id: str,
+                  parent_page_id: str, token: str) -> str:
+    image_ids = {}
+    for image in sorted((rendered / "images").glob("vg-*.jpg")):
+        guide_id = image.name.split("_")[0]
+        image_ids[guide_id] = notion_upload_image(image, token)
+
+    blocks = build_notion_blocks(data, video_id, image_ids)
+    page = notion_request("/pages", token, payload={
+        "parent": {"page_id": parent_page_id},
+        "properties": {"title": {"title": _rich(data.get("title", "clipnote"))}},
+        "children": blocks[:100],
+    })
+    for start in range(100, len(blocks), 100):
+        notion_request(f"/blocks/{page['id']}/children", token,
+                       payload={"children": blocks[start:start + 100]})
+    return page.get("url", page["id"])
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("video_id")
     ap.add_argument("--profile", default="generic")
     ap.add_argument("--language", default="ko")
-    ap.add_argument("--target", choices=("bundle", "obsidian", "goodnotes"),
+    ap.add_argument("--target", choices=("bundle", "obsidian", "goodnotes", "notion"),
                     default="bundle")
     ap.add_argument("--destination")
     ap.add_argument("--font", help="Goodnotes PDF용 TTF/TTC 폰트 경로")
+    ap.add_argument("--parent", help="Notion 부모 페이지 ID (--target notion)")
+    ap.add_argument("--notion-token", help="Notion integration token (기본: NOTION_TOKEN 환경변수)")
     args = ap.parse_args()
 
     data, rendered, document = load_source(
         args.video_id, args.profile, args.language)
     if args.destination:
         destination = Path(args.destination)
-    elif args.target == "bundle":
-        destination = (HERE / "exports" / args.video_id /
-                       variant_key(args.profile, args.language) / "bundle")
-    elif args.target == "goodnotes":
-        destination = (HERE / "exports" / args.video_id /
-                       variant_key(args.profile, args.language) / "goodnotes")
-    else:
+    elif args.target in ("bundle", "goodnotes"):
+        destination = (data_root() / "exports" / args.video_id /
+                       variant_key(args.profile, args.language) / args.target)
+    elif args.target == "obsidian":
         ap.error("--target obsidian에는 --destination <vault-folder>가 필요합니다.")
+    else:
+        destination = None  # notion은 로컬 대상 없음
 
     if args.target == "bundle":
         result = export_bundle(data, rendered, document, destination,
@@ -224,9 +338,16 @@ def main():
     elif args.target == "obsidian":
         result = export_obsidian(data, rendered, document, destination,
                                  args.video_id, args.profile, args.language)
-    else:
+    elif args.target == "goodnotes":
         result = export_goodnotes(
             data, rendered, destination, args.video_id, args.font)
+    else:
+        token = args.notion_token or os.environ.get("NOTION_TOKEN")
+        if not token:
+            ap.error("--target notion에는 NOTION_TOKEN(또는 --notion-token)이 필요합니다.")
+        if not args.parent:
+            ap.error("--target notion에는 --parent <페이지 ID>가 필요합니다.")
+        result = export_notion(data, rendered, args.video_id, args.parent, token)
     print(f"내보내기 완료: {result}")
 
 

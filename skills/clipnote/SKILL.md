@@ -29,7 +29,7 @@ via swappable profiles. Output is a portable document that exports to Notion, Ob
 - Environment variable `GEMINI_API_KEY` (Google AI Studio key). If missing, ask the user for one
   (free at https://aistudio.google.com/apikey) — never proceed without it.
 - `ffmpeg` on PATH (frame capture; not needed for `--links-only`).
-- `pip install -r requirements.txt` (yt-dlp, reportlab, opencv-python-headless).
+- `pip install -e .` from the repo (installs deps and the `clipnote` command).
 </Prerequisites>
 
 <Contract>
@@ -42,25 +42,30 @@ valid step references, non-vague `guide_text`. Output language follows the user 
 </Contract>
 
 <How_To_Run>
-One command drives analyze → capture → render → export.
+One command drives analyze → capture → pick → render → export.
 
 1. Fully automatic (no ffmpeg, timestamp links instead of screenshots):
-   `python pipeline.py <URL> --profile generic --language ko --links-only`
+   `clipnote <URL> --profile generic --language ko --links-only`
 
-2. With screenshots + export (human/agent picks the best frame):
-   - `python pipeline.py <URL> --profile recipe --language ko`
-   - Open the printed `picker.html`, choose one candidate (`before`/`center`/`after`) per guide or
-     mark it unusable, download `picks.json` into the frames dir.
-   - Re-run with `--picks <picks.json> --export goodnotes` (or `obsidian`/`bundle`).
+2. Fully automatic with screenshots (Gemini picks the frame per guide):
+   `clipnote <URL> --profile recipe --language ko --auto-pick --export goodnotes`
+   Review the regenerated `picker.html` (AI picks pre-selected); if the user corrects any,
+   run `python -m clipnote.feedback add <semantic-evaluation.json>` to log it.
 
-Agent path: instead of picker.html, the agent can read the three candidate frames directly and write
-`picks.json` itself (structural + visual judgment).
+3. Manual/agent frame selection:
+   - `clipnote <URL> --profile recipe --language ko`
+   - Agent path: read the three candidate frames under `work/frames/…` directly, write
+     `picks.json` yourself (semantic judgment), then re-run with
+     `--picks <picks.json> --export goodnotes` (or `obsidian`/`bundle`/`notion`).
+
+Notion export needs `NOTION_TOKEN` and `--parent <page-id>`.
+Artifacts go under the current directory (`CLIPNOTE_DATA` overrides).
 </How_To_Run>
 
 <Profiles>
 - `generic`: any how-to (materials + steps + visual guides).
 - `recipe`: cooking-tuned (adds servings, ingredient wording).
-- Add a domain by dropping `skill-core/profiles/<name>/{prompt.md,schema.json,template.md}`.
+- Add a domain by dropping `src/clipnote/skill-core/profiles/<name>/{prompt.md,schema.json,template.md}`.
 </Profiles>
 
 <Outputs>

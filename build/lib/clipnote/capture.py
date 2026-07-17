@@ -15,11 +15,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-from common import analysis_file, frames_dir
+from .common import analysis_file, data_root, frames_dir
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-HERE = Path(__file__).parent
 SLOTS = ("before", "center", "after")
 
 
@@ -30,7 +29,7 @@ def sh(*args: str) -> None:
 
 
 def ensure_video(vid: str) -> Path:
-    mp4 = HERE / "work" / f"{vid}.mp4"
+    mp4 = data_root() / "work" / f"{vid}.mp4"
     if not mp4.exists():
         print("[1/3] 480p 영상 다운로드...")
         sh(sys.executable, "-m", "yt_dlp", "-f",
@@ -66,13 +65,13 @@ def main():
     args = ap.parse_args()
 
     vid = args.video_id
-    source = analysis_file(HERE, vid, args.profile, args.language)
+    source = analysis_file(data_root(), vid, args.profile, args.language)
     if not source.exists():
         sys.exit(f"분석 결과 없음: {source}")
     data = json.loads(source.read_text(encoding="utf-8"))
     mp4 = ensure_video(vid)
 
-    out = frames_dir(HERE, vid, args.profile, args.language)
+    out = frames_dir(data_root(), vid, args.profile, args.language)
     out.mkdir(parents=True, exist_ok=True)
     for stale in out.glob("vg-*.jpg"):
         stale.unlink()

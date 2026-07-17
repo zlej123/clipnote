@@ -1,19 +1,19 @@
 import json
+import os
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).parent.parent
-sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(ROOT / "src"))
 
-import analyze
-import capture
-import export as exporter
-import render as renderer
-from contract import validate
-from common import analysis_file, frames_dir, output_dir, video_id
+from clipnote import analyze, capture
+from clipnote import export as exporter
+from clipnote import render as renderer
+from clipnote.contract import validate
+from clipnote.common import analysis_file, frames_dir, output_dir, video_id
 
 
 class CoreContractTests(unittest.TestCase):
@@ -171,6 +171,116 @@ class ExportTests(unittest.TestCase):
                 data, rendered, root / "goodnotes", "video")
             self.assertTrue(pdf.exists())
             self.assertGreater(pdf.stat().st_size, 1000)
+
+
+class AutoPickTests(unittest.TestCase):
+    def _seed(self, root: Path):
+        os.environ["CLIPNOTE_DATA"] = str(root)
+        data = CoreContractTests().valid_data()
+        from clipnote.common import analysis_file, frames_dir
+        source = analysis_file(root, "vid00000000", "generic", "ko")
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        frames = frames_dir(root, "vid00000000", "generic", "ko")
+        frames.mkdir(parents=True, exist_ok=True)
+        for slot in ("before", "center", "after"):
+            (frames / f"vg-1_{slot}.jpg").write_bytes(b"\xff\xd8fake")
+        return frames
+
+    def tearDown(self):
+        os.environ.pop("CLIPNOTE_DATA", None)
+
+    def test_auto_pick_writes_picks_and_meta(self):
+        from clipnote import autopick
+        with tempfile.TemporaryDirectory() as temp:
+            frames = self._seed(Path(temp))
+            with patch.object(autopick, "generate_json", return_value={
+                    "picks": [{"guide_id": "vg-1", "slot": "after",
+                               "reason": "목표 상태가 가장 명확"}]}):
+                picks = autopick.auto_pick("vid00000000", "generic", "ko", "m", "k")
+            self.assertEqual({"vg-1": "after"}, picks)
+            saved = json.loads((frames / "picks.json").read_text(encoding="utf-8"))
+            self.assertEqual("after", saved["vg-1"])
+            meta = json.loads((frames / "picks-meta.json").read_text(encoding="utf-8"))
+            self.assertEqual("auto", meta["source"])
+
+    def test_missing_guides_fall_back_to_none(self):
+        from clipnote import autopick
+        with tempfile.TemporaryDirectory() as temp:
+            self._seed(Path(temp))
+            with patch.object(autopick, "generate_json",
+                              return_value={"picks": []}):
+                picks = autopick.auto_pick("vid00000000", "generic", "ko", "m", "k")
+            self.assertEqual({"vg-1": "none"}, picks)
+
+
+class FeedbackTests(unittest.TestCase):
+    def tearDown(self):
+        os.environ.pop("CLIPNOTE_DATA", None)
+
+    def test_add_and_summary(self):
+        from clipnote import feedback
+        with tempfile.TemporaryDirectory() as temp:
+            os.environ["CLIPNOTE_DATA"] = temp
+            evaluation = Path(temp) / "semantic-evaluation.json"
+            evaluation.write_text(json.dumps({
+                "video_id": "v", "profile": "generic", "language": "ko",
+                "guides": [
+                    {"guide_id": "vg-1", "ai_slot": "center",
+                     "selected_slot": "center", "reviewed": True},
+                    {"guide_id": "vg-2", "ai_slot": "center",
+                     "selected_slot": "after", "reviewed": True},
+                    {"guide_id": "vg-3", "ai_slot": None, "reviewed": True},
+                ]}), encoding="utf-8")
+            self.assertEqual(2, feedback.add(evaluation))
+            stats = feedback.summary()
+            self.assertEqual(2, stats["total"])
+            self.assertEqual(1, stats["agreed"])
+            self.assertEqual({"center→after": 1}, stats["disagreements"])
+
+
+class NotionTests(unittest.TestCase):
+    def test_block_building_with_image_and_link(self):
+        data = CoreContractTests().valid_data()
+        data["visual_guides"].append({
+            "id": "vg-2", "step_id": 1, "source_phrase": "x", "phrase": "링크 가이드",
+            "type": "state", "what_to_show": "y", "best_visual_timestamp": 9,
+            "guide_text": "링크로 확인한다.", "importance": 0.5})
+        blocks = exporter.build_notion_blocks(data, "vid00000000", {"vg-1": "upload-1"})
+        kinds = [block["type"] for block in blocks]
+        self.assertIn("image", kinds)
+        image = next(block for block in blocks if block["type"] == "image")
+        self.assertEqual("upload-1", image["image"]["file_upload"]["id"])
+        links = [block for block in blocks if block["type"] == "paragraph"
+                 and block["paragraph"]["rich_text"][0]["text"].get("link")]
+        self.assertTrue(any("t=9" in block["paragraph"]["rich_text"][0]["text"]["link"]["url"]
+                            for block in links))
+
+    def test_export_notion_uploads_and_creates_page(self):
+        data = CoreContractTests().valid_data()
+        calls = []
+
+        def fake_request(path, token, payload=None, data=None, content_type=None):
+            calls.append(path)
+            if path == "/file_uploads":
+                return {"id": "up-1"}
+            if path.startswith("/file_uploads/"):
+                return {"status": "uploaded"}
+            if path == "/pages":
+                self.assertEqual("parent-page", payload["parent"]["page_id"])
+                return {"id": "page-1", "url": "https://notion.so/page-1"}
+            raise AssertionError(path)
+
+        with tempfile.TemporaryDirectory() as temp:
+            rendered = Path(temp)
+            (rendered / "images").mkdir()
+            (rendered / "images" / "vg-1_action.jpg").write_bytes(b"img")
+            with patch.object(exporter, "notion_request", side_effect=fake_request):
+                url = exporter.export_notion(data, rendered, "vid00000000",
+                                             "parent-page", "tok")
+        self.assertEqual("https://notion.so/page-1", url)
+        self.assertIn("/file_uploads", calls)
+        self.assertIn("/pages", calls)
 
 
 if __name__ == "__main__":

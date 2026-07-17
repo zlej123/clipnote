@@ -17,12 +17,12 @@ import subprocess
 import sys
 import urllib.request
 from pathlib import Path
-from common import analysis_file
-from contract import validate
+from .common import analysis_file, data_root
+from .contract import validate
 sys.stdout.reconfigure(encoding="utf-8")  # Windows cp949 콘솔 대응
 
-HERE = Path(__file__).parent
-RULES = (HERE / "skill-core" / "engine" / "rules.md").read_text(encoding="utf-8")
+PKG = Path(__file__).parent
+RULES = (PKG / "skill-core" / "engine" / "rules.md").read_text(encoding="utf-8")
 TYPE_ALIASES = {
     "shape": "state",
     "pattern": "texture",
@@ -38,7 +38,7 @@ class RateLimitError(RuntimeError):
 
 
 def load_schema(profile: str) -> dict:
-    path = HERE / "skill-core" / "profiles" / profile / "schema.json"
+    path = PKG / "skill-core" / "profiles" / profile / "schema.json"
     if not path.exists():
         sys.exit(f"알 수 없는 프로파일 스키마: {profile} ({path} 없음)")
     schema = json.loads(path.read_text(encoding="utf-8"))
@@ -48,7 +48,7 @@ def load_schema(profile: str) -> dict:
 
 
 def load_prompt(profile: str, duration_hms: str, language: str, max_guides: int) -> str:
-    p = HERE / "skill-core" / "profiles" / profile / "prompt.md"
+    p = PKG / "skill-core" / "profiles" / profile / "prompt.md"
     if not p.exists():
         sys.exit(f"알 수 없는 프로파일: {profile} ({p} 없음)")
     return (p.read_text(encoding="utf-8")
@@ -91,15 +91,11 @@ def hms(sec: int) -> str:
     return f"{sec // 60}:{sec % 60:02d}"
 
 
-def call_gemini(url: str, prompt: str, model: str, key: str,
-                schema: dict, retries: int = 2) -> dict:
+def generate_json(parts: list, model: str, key: str,
+                  schema: dict, retries: int = 2) -> dict:
+    """Call Gemini generateContent with arbitrary parts, returning parsed JSON."""
     body = {
-        "contents": [{
-            "parts": [
-                {"file_data": {"file_uri": url}},
-                {"text": prompt},
-            ]
-        }],
+        "contents": [{"parts": parts}],
         "generationConfig": {
             "response_mime_type": "application/json",
             "response_json_schema": schema,
@@ -135,6 +131,13 @@ def call_gemini(url: str, prompt: str, model: str, key: str,
             "응답 파싱 실패:\n" +
             json.dumps(payload, ensure_ascii=False, indent=2))
     return json.loads(text)
+
+
+def call_gemini(url: str, prompt: str, model: str, key: str,
+                schema: dict, retries: int = 2) -> dict:
+    return generate_json(
+        [{"file_data": {"file_uri": url}}, {"text": prompt}],
+        model, key, schema, retries)
 
 
 def normalize(data: dict) -> dict:
@@ -180,7 +183,7 @@ def main():
         ap.error("--max-guides는 0 이상이어야 합니다.")
 
     vid = video_id(args.url)
-    out_file = analysis_file(HERE, vid, args.profile, args.language)
+    out_file = analysis_file(data_root(), vid, args.profile, args.language)
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     duration = fetch_duration(args.url)

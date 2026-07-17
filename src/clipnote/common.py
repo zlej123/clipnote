@@ -1,8 +1,14 @@
 """Shared artifact paths and identifiers for profile/language variants."""
+import os
 import re
 from pathlib import Path
 
 TOKEN = re.compile(r"^[A-Za-z0-9._-]+$")
+
+
+def data_root() -> Path:
+    """Artifact root (work/, output/, exports/). Env CLIPNOTE_DATA or cwd."""
+    return Path(os.environ.get("CLIPNOTE_DATA", Path.cwd()))
 
 
 def validate_token(value: str, label: str) -> str:

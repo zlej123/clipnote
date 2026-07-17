@@ -25,8 +25,8 @@ And *"cut it bite-sized"*:
 ## Install
 
 ```bash
-pip install -r requirements.txt   # yt-dlp, reportlab, opencv-python-headless
-# system dependency: ffmpeg (on PATH)
+pip install -e .                   # installs deps + the `clipnote` command
+# system dependency: ffmpeg (on PATH; not needed for --links-only)
 export GEMINI_API_KEY=...          # Google AI Studio key
 ```
 
@@ -35,17 +35,30 @@ export GEMINI_API_KEY=...          # Google AI Studio key
 One command runs the whole pipeline.
 
 ```bash
-# 1) Fully automatic (no ffmpeg; timestamp links instead of screenshots)
-python pipeline.py "https://www.youtube.com/watch?v=..." --profile generic --language en --links-only
+# 1) Fully automatic, links instead of screenshots (no ffmpeg)
+clipnote "https://www.youtube.com/watch?v=..." --profile generic --language en --links-only
 
-# 2) With screenshots + export
-python pipeline.py "https://www.youtube.com/watch?v=..." --profile recipe --language en
+# 2) Fully automatic with screenshots: AI picks the frames, you review after
+clipnote "https://www.youtube.com/watch?v=..." --profile recipe --language en --auto-pick --export goodnotes
+
+# 3) Manual frame selection
+clipnote "https://www.youtube.com/watch?v=..." --profile recipe --language en
 #   → open the printed picker.html, pick one candidate per guide, save picks.json
-python pipeline.py "https://www.youtube.com/watch?v=..." --profile recipe --language en \
+clipnote "https://www.youtube.com/watch?v=..." --profile recipe --language en \
     --picks work/frames/<id>/recipe.en/picks.json --export goodnotes
 ```
 
-Options: `--profile generic|recipe`, `--language ko|en|ja|...`, `--max-guides N`, `--model`, `--export bundle|obsidian|goodnotes`.
+Options: `--profile generic|recipe`, `--language ko|en|ja|...`, `--max-guides N`, `--model`, `--auto-pick`, `--export bundle|obsidian|goodnotes|notion`.
+
+With `--auto-pick`, Gemini vision chooses among the three candidates per guide (or falls back to a
+timestamp link when none fits). The regenerated picker.html shows the AI picks pre-selected; if you
+correct any, download the evaluation file and record it:
+
+```bash
+python -m clipnote.feedback add semantic-evaluation.json   # accumulates accuracy + disagreement patterns
+```
+
+Artifacts are written under the current directory (override with `CLIPNOTE_DATA`).
 
 ## Note app export
 
@@ -53,11 +66,12 @@ Options: `--profile generic|recipe`, `--language ko|en|ja|...`, `--max-guides N`
 |--------|-----|--------|
 | Obsidian | Markdown + attachments copied into a vault folder | done |
 | Goodnotes | PDF (CJK fonts supported) for the import/share flow | done |
-| Notion | `bundle/` (document.md + manifest.json + images) for the File Upload API | upload-ready |
+| Notion | direct upload via the Notion API (your integration token) | done |
 
 ```bash
-python export.py <id> --profile recipe --language en --target obsidian --destination /path/to/vault
-python export.py <id> --profile recipe --language en --target goodnotes
+clipnote-export <id> --profile recipe --language en --target obsidian --destination /path/to/vault
+clipnote-export <id> --profile recipe --language en --target goodnotes
+NOTION_TOKEN=... clipnote-export <id> --profile recipe --language en --target notion --parent <page-id>
 ```
 
 ## Reusing clipnote
@@ -86,7 +100,7 @@ The skill clones this repo on first use and asks for a Gemini API key if none is
 
 ## Adding a domain profile
 
-Drop three files into `skill-core/profiles/<name>/`: `prompt.md` (containing `{{RULES}}`), `schema.json`, `template.md`. No pipeline changes needed.
+Drop three files into `src/clipnote/skill-core/profiles/<name>/`: `prompt.md` (containing `{{RULES}}`), `schema.json`, `template.md`. No pipeline changes needed.
 
 ## Tests
 

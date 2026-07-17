@@ -22,10 +22,10 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 HERE = Path(__file__).parent
 ROOT = HERE.parent
-sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(HERE))
-from common import analysis_file  # noqa: E402
-from contract import validate  # noqa: E402
+from clipnote.common import analysis_file  # noqa: E402
+from clipnote.contract import validate  # noqa: E402
 
 
 def video_id(url: str) -> str:
@@ -41,7 +41,7 @@ def hms(seconds) -> str:
 
 def run_analyze(url: str, profile: str, language: str,
                 model: str, force: bool) -> int:
-    command = [sys.executable, str(ROOT / "analyze.py"), url,
+    command = [sys.executable, "-m", "clipnote.analyze", url,
                "--profile", profile, "--language", language,
                "--model", model]
     if force:
@@ -182,7 +182,7 @@ def main():
 
             if args.capture and not errors and guides:
                 subprocess.run([
-                    sys.executable, str(ROOT / "capture.py"), vid,
+                    sys.executable, "-m", "clipnote.capture", vid,
                     "--profile", profile, "--language", language,
                 ], cwd=str(ROOT))
         if domain_reviewed:

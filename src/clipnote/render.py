@@ -14,12 +14,14 @@ import re
 import shutil
 import sys
 from pathlib import Path
-from common import analysis_file, frames_dir as artifact_frames_dir, output_dir
+from .common import analysis_file, data_root, frames_dir as artifact_frames_dir, output_dir
 sys.stdout.reconfigure(encoding="utf-8")
 
-HERE = Path(__file__).parent
+PKG = Path(__file__).parent
+
+
 def load_template(profile: str) -> str:
-    p = HERE / "skill-core" / "profiles" / profile / "template.md"
+    p = PKG / "skill-core" / "profiles" / profile / "template.md"
     if not p.exists():
         sys.exit(f"알 수 없는 프로파일: {profile} ({p} 없음)")
     return p.read_text(encoding="utf-8")
@@ -192,7 +194,7 @@ def main():
     args = ap.parse_args()
 
     vid = args.video_id
-    source = analysis_file(HERE, vid, args.profile, args.language)
+    source = analysis_file(data_root(), vid, args.profile, args.language)
     if not source.exists():
         sys.exit(f"분석 결과 없음: {source}")
     data = json.loads(source.read_text(encoding="utf-8"))
@@ -205,8 +207,8 @@ def main():
         picks = json.loads(picks_path.read_text(encoding="utf-8"))
 
     source_frames = artifact_frames_dir(
-        HERE, vid, args.profile, args.language)
-    out_dir = output_dir(HERE, vid, args.profile, args.language)
+        data_root(), vid, args.profile, args.language)
+    out_dir = output_dir(data_root(), vid, args.profile, args.language)
     images_dir = out_dir / "images"
     images_dir.mkdir(parents=True, exist_ok=True)
     for stale in images_dir.glob("*.jpg"):
