@@ -6,6 +6,10 @@ Instructions like *"cut it bite-sized"* or *"simmer until the sauce reduces"* do
 
 Gemini analyzes the video itself (visuals and audio), so it works on videos without captions, and when the narration runs ahead of the action.
 
+This repo is the Python core and the language-neutral `skill-core/` assets. If you just want to use
+clipnote, the clients built on it are [clipnote-apple](https://github.com/zlej123/clipnote-apple)
+(iOS/iPadOS/macOS) and [clipnote-extension](https://github.com/zlej123/clipnote-extension) (Chrome).
+
 ## Example
 
 Generated from [this pork stir-fry video](https://youtu.be/4ioPBiTWm3M). Where the video only says *"simmer until the sauce reduces"*, the document reads:
@@ -85,9 +89,13 @@ Two reuse boundaries:
 |----------|-----|
 | REST API server | wraps the modules — see [clipnote-server](https://github.com/zlej123/clipnote-server) |
 | Desktop app / Python tools / agent skills | import directly (see `skills/clipnote/SKILL.md`) |
-| Native iOS/macOS app | call [clipnote-server](https://github.com/zlej123/clipnote-server), or reuse `skill-core/` in Swift (see `docs/apple-brief.md`) |
+| iOS/iPadOS/macOS app | [clipnote-apple](https://github.com/zlej123/clipnote-apple) — bundles `skill-core/` and calls Gemini directly (no server), with the Python renderer ported to Swift |
+| Browser | [clipnote-extension](https://github.com/zlej123/clipnote-extension) — captures frames from the YouTube player itself |
 
-A browser client lives at [clipnote-extension](https://github.com/zlej123/clipnote-extension) — it captures frames from the YouTube player itself, no server needed.
+Both clients capture frames on their own side (WKWebView / canvas), so neither needs ffmpeg or a
+download step, and the server stays optional. clipnote-apple is the fullest reuse of `skill-core/`:
+its Swift port of the mustache renderer is pinned to this repo's `render.py` output by golden tests,
+so a template change here stays reproducible there.
 
 ## Use as an agent skill
 
