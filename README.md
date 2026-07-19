@@ -1,6 +1,6 @@
 # clipnote
 
-Turns how-to videos into follow-along documents, with real video frames at the ambiguous moments.
+Turns videos into documents, recipes, and user manuals.
 
 Instructions like *"cut it bite-sized"* or *"simmer until the sauce reduces"* don't mean much as text. clipnote finds the frame where that state is actually visible and embeds it next to the step. It works across domains — cooking, repair, crafts, beauty, fitness, software — and exports to Notion, Obsidian, and Goodnotes.
 
