@@ -13,7 +13,7 @@ from clipnote import analyze, capture
 from clipnote import export as exporter
 from clipnote import render as renderer
 from clipnote.contract import validate
-from clipnote.common import analysis_file, frames_dir, output_dir, video_id
+from clipnote.common import analysis_file, frames_dir, hms, output_dir, video_id
 
 
 class CoreContractTests(unittest.TestCase):
@@ -79,12 +79,31 @@ class CoreContractTests(unittest.TestCase):
         self.assertEqual("position", repaired["type"])
         self.assertIn("_normalization_warnings", normalized)
 
+    def test_normalize_keeps_zero_importance(self):
+        data = self.valid_data()
+        data["visual_guides"][0]["importance"] = 0.0
+        normalized = analyze.normalize(data)
+        self.assertEqual(0.0, normalized["visual_guides"][0]["importance"])
+        self.assertNotIn("_normalization_warnings", normalized)
+
+    def test_vague_english_guide_text_warns(self):
+        data = self.valid_data()
+        data["visual_guides"][0]["guide_text"] = "Cook until done, just enough."
+        errors, warnings = validate(data)
+        self.assertEqual([], errors)
+        self.assertTrue(any("막연 표현" in warning for warning in warnings))
+
     def test_video_id_parses_all_url_forms(self):
         self.assertEqual("GC_Szxdqh2Y", video_id("https://www.youtube.com/watch?v=GC_Szxdqh2Y"))
         self.assertEqual("Ff9BQUkhTZ4", video_id("https://www.youtube.com/shorts/Ff9BQUkhTZ4"))
         self.assertEqual("4ioPBiTWm3M", video_id("https://youtu.be/4ioPBiTWm3M"))
         with self.assertRaises(ValueError):
             video_id("https://example.com/not-a-video")
+
+    def test_hms_formats_minutes_and_hours(self):
+        self.assertEqual("0:08", hms(8))
+        self.assertEqual("1:02", hms(62))
+        self.assertEqual("1:01:05", hms(3665))
 
     def test_prompt_injects_user_language_and_limits(self):
         prompt = analyze.load_prompt("generic", "6:41", "ja", 7)

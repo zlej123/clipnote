@@ -52,7 +52,7 @@ clipnote "https://www.youtube.com/watch?v=..." --profile recipe --language en \
     --picks work/frames/<id>/recipe.en/picks.json --export goodnotes
 ```
 
-Options: `--profile generic|recipe`, `--language ko|en|ja|...`, `--max-guides N`, `--model`, `--auto-pick`, `--export bundle|obsidian|goodnotes|notion`.
+Options: `--profile generic|recipe`, `--language ko|en|ja|...`, `--max-guides N`, `--model`, `--auto-pick`, `--export bundle|obsidian|goodnotes|notion` (Notion also needs `--parent <page-id>` and `NOTION_TOKEN`).
 
 With `--auto-pick`, Gemini vision chooses among the three candidates per guide (or falls back to a
 timestamp link when none fits). The regenerated picker.html shows the AI picks pre-selected; if you

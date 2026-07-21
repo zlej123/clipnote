@@ -15,7 +15,8 @@ Usage:
     py -3.11 pipeline.py URL [--profile generic] [--language ko] [--max-guides 5]
         [--model gemini-flash-lite-latest] [--force]
         [--links-only] [--picks PATH]
-        [--export bundle|obsidian|goodnotes] [--destination DIR]
+        [--export bundle|obsidian|goodnotes|notion] [--destination DIR]
+        [--parent PAGE_ID]   # required for --export notion
 """
 import argparse
 import subprocess
@@ -46,11 +47,20 @@ def main():
     ap.add_argument("--picks", help="picker.html에서 내려받은 picks.json")
     ap.add_argument("--auto-pick", action="store_true",
                     help="캡처 후 AI가 후보 3장 중 장면을 자동 선택 (사람 검토는 picker에서)")
-    ap.add_argument("--export", choices=("bundle", "obsidian", "goodnotes"))
+    ap.add_argument("--export", choices=("bundle", "obsidian", "goodnotes", "notion"))
     ap.add_argument("--destination")
+    ap.add_argument("--parent", help="Notion 부모 페이지 ID (--export notion)")
+    ap.add_argument("--notion-token",
+                    help="Notion integration token (기본: NOTION_TOKEN 환경변수)")
     args = ap.parse_args()
 
-    vid = video_id(args.url)
+    if args.export == "notion" and not args.parent:
+        ap.error("--export notion에는 --parent <페이지 ID>가 필요합니다.")
+
+    try:
+        vid = video_id(args.url)
+    except ValueError as error:
+        sys.exit(str(error))
     common_flags = ["--profile", args.profile, "--language", args.language]
 
     print("[pipeline] 1) 분석")
@@ -88,6 +98,10 @@ def main():
         export_flags = [vid, *common_flags, "--target", args.export]
         if args.destination:
             export_flags += ["--destination", args.destination]
+        if args.export == "notion":
+            export_flags += ["--parent", args.parent]
+            if args.notion_token:
+                export_flags += ["--notion-token", args.notion_token]
         run("export", *export_flags)
 
     print(f"[pipeline] 완료: {analysis_file(data_root(), vid, args.profile, args.language)}")

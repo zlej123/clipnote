@@ -1,9 +1,10 @@
-"""Shared artifact paths and identifiers for profile/language variants."""
+"""Shared artifact paths, identifiers, and small utilities."""
 import os
 import re
 from pathlib import Path
 
 TOKEN = re.compile(r"^[A-Za-z0-9._-]+$")
+VIDEO_ID = re.compile(r"(?:v=|youtu\.be/|shorts/)([\w-]{11})")
 
 
 def data_root() -> Path:
@@ -16,14 +17,26 @@ def validate_token(value: str, label: str) -> str:
         raise ValueError(f"잘못된 {label}: {value!r}")
     return value
 
-VIDEO_ID = re.compile(r"(?:v=|youtu\.be/|shorts/)([\w-]{11})")
-
 
 def video_id(url: str) -> str:
     match = VIDEO_ID.search(url)
     if not match:
         raise ValueError(f"유튜브 URL에서 video id를 찾지 못함: {url}")
     return match.group(1)
+
+
+def hms(sec: int) -> str:
+    """Seconds -> M:SS (or H:MM:SS when >= 1 hour)."""
+    if sec is None:
+        return ""
+    sec = int(sec)
+    if sec < 0:
+        sec = 0
+    hours, rem = divmod(sec, 3600)
+    minutes, seconds = divmod(rem, 60)
+    if hours:
+        return f"{hours}:{minutes:02d}:{seconds:02d}"
+    return f"{minutes}:{seconds:02d}"
 
 
 def variant_key(profile: str, language: str) -> str:

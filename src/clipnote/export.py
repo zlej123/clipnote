@@ -132,8 +132,13 @@ def export_goodnotes(data, rendered: Path, destination: Path,
     font = find_pdf_font(font_path)
     font_name = "Helvetica"
     if font:
-        font_name = "ClipnoteFont"
-        pdfmetrics.registerFont(TTFont(font_name, str(font)))
+        try:
+            pdfmetrics.registerFont(TTFont("ClipnoteFont", str(font)))
+            font_name = "ClipnoteFont"
+        except Exception as error:
+            # Some system TTCs (e.g. AppleSDGothicNeo) use outlines reportlab
+            # cannot parse; fall back to the built-in Latin font.
+            print(f"[export] 폰트 등록 실패 ({font.name}): {error}; Helvetica 사용")
 
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle(
