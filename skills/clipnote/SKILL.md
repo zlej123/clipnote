@@ -43,17 +43,19 @@ valid step references, non-vague `guide_text`. Output language follows the user 
 
 <How_To_Run>
 One command drives analyze → capture → pick → render → export.
+`--language` is the **document** language (BCP-47: `en`, `ko`, `ja`, …), not the video’s spoken language. English how-to videos work with either `en` or `ko` output.
 
 1. Fully automatic (no ffmpeg, timestamp links instead of screenshots):
-   `clipnote <URL> --profile generic --language ko --links-only`
+   - Korean doc: `clipnote <URL> --profile generic --language ko --links-only`
+   - English doc (English-speaking users): `clipnote <URL> --profile generic --language en --links-only`
 
 2. Fully automatic with screenshots (Gemini picks the frame per guide):
-   `clipnote <URL> --profile recipe --language ko --auto-pick --export goodnotes`
+   `clipnote <URL> --profile recipe --language en --auto-pick --export goodnotes`
    Review the regenerated `picker.html` (AI picks pre-selected); if the user corrects any,
    run `python -m clipnote.feedback add <semantic-evaluation.json>` to log it.
 
 3. Manual/agent frame selection:
-   - `clipnote <URL> --profile recipe --language ko`
+   - `clipnote <URL> --profile recipe --language en`
    - Agent path: read the three candidate frames under `work/frames/…` directly, write
      `picks.json` yourself (semantic judgment), then re-run with
      `--picks <picks.json> --export goodnotes` (or `obsidian`/`bundle`/`notion`).
@@ -78,6 +80,10 @@ Artifacts go under the current directory (`CLIPNOTE_DATA` overrides).
 <Verification>
 - `python -m unittest discover -s tests` — contract/normalize/selection/export unit tests.
 - `python tests/batch.py` — structural + semantic regression over the fixture corpus.
+- `python tests/batch.py --domain en_output --analyze` — English **output** smoke
+  (`tests/fixtures/urls.json` → `en_output`, writes `work/analyses/<id>/*.<en>.json`).
+- After capture, save picker `semantic-evaluation.json` as
+  `tests/evaluations/<id>.<profile>.en.json` so batch can report top-3 hit rate for `en`.
 - `python tests/validate_fixtures.py --online` — fixture URL availability + strata.
 </Verification>
 

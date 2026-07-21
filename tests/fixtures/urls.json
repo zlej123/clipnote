@@ -7,7 +7,36 @@
     "framing": ["hands", "full-body", "screen"],
     "source_language": ["ko", "en"]
   },
-  "_comment": "각 도메인 8~12개. 수량보다 strata 조합과 30분 이하 실행 가능성을 우선한다.",
+  "_comment": "각 도메인 8~12개. 수량보다 strata 조합과 30분 이하 실행 가능성을 우선한다. en_output은 suite=smoke(2~6)로 영어 출력 회귀만 본다. 동일 video id를 ko 도메인과 공유해도 language가 다르면 허용.",
+  "en_output": {
+    "suite": "smoke",
+    "profile": "generic",
+    "language": "en",
+    "videos": [
+      {
+        "url": "https://www.youtube.com/watch?v=TA3Uo3a9674",
+        "profile": "recipe",
+        "note": "EN output smoke: Maangchi tteokbokki (recipe.en)",
+        "strata": {"length": "medium", "audio": "spoken", "captions": "manual", "editing": "jump-cut", "framing": "full-body", "source_language": "en"}
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=IAgmW_gTxls",
+        "profile": "recipe",
+        "note": "EN output smoke: scrambled eggs (recipe.en)",
+        "strata": {"length": "medium", "audio": "spoken", "captions": "auto", "editing": "continuous", "framing": "hands", "source_language": "en"}
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=GC_Szxdqh2Y",
+        "note": "EN output smoke: origami crane (generic.en)",
+        "strata": {"length": "medium", "audio": "silent", "captions": "none", "editing": "continuous", "framing": "hands", "source_language": "en"}
+      },
+      {
+        "url": "https://www.youtube.com/shorts/Ft9qhSnF5gE",
+        "note": "EN output smoke: leaky faucet short (generic.en)",
+        "strata": {"length": "short", "audio": "spoken", "captions": "auto", "editing": "jump-cut", "framing": "hands", "source_language": "en"}
+      }
+    ]
+  },
   "recipe": {
     "profile": "recipe", "language": "ko", "videos": [
       {"url":"https://www.youtube.com/watch?v=4ioPBiTWm3M","note":"백종원 제육볶음","strata":{"length":"medium","audio":"spoken","captions":"auto","editing":"continuous","framing":"hands","source_language":"ko"}},

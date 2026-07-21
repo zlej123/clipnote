@@ -92,22 +92,27 @@ def main():
             continue
         if args.domain and domain != args.domain:
             continue
-        profile = config.get("profile", "generic")
-        language = config.get("language", "ko")
+        default_profile = config.get("profile", "generic")
+        default_language = config.get("language", "ko")
+        suite = config.get("suite", "domain")
         videos = config.get("videos", [])
-        lines.append(f"## {domain} (profile={profile}, language={language}, {len(videos)}개)\n")
+        lines.append(
+            f"## {domain} (default profile={default_profile}, "
+            f"language={default_language}, suite={suite}, {len(videos)}개)\n")
         if not videos:
             lines.append("_영상 없음 — fixtures/urls.json에 추가 필요._\n")
             continue
         lines.extend([
-            "| video | 제목 | 단계 | 가이드 | 구조 | 의미 검토 | 상세 |",
-            "|-------|------|------|--------|------|-----------|------|",
+            "| video | lang | 제목 | 단계 | 가이드 | 구조 | 의미 검토 | 상세 |",
+            "|-------|------|------|------|--------|------|-----------|------|",
         ])
         domain_reviewed = 0
         domain_hits = 0
 
         for fixture in videos:
             total += 1
+            profile = fixture.get("profile", default_profile)
+            language = fixture.get("language", default_language)
             vid = video_id(fixture["url"])
             for name, value in fixture.get("strata", {}).items():
                 coverage[name][value] += 1
@@ -115,7 +120,7 @@ def main():
             if quota_blocked and not source.exists():
                 skipped += 1
                 lines.append(
-                    f"| {vid} | {fixture.get('note','')} | - | - | 스킵 | - | "
+                    f"| {vid} | {language} | {fixture.get('note','')} | - | - | 스킵 | - | "
                     "Gemini 한도 도달 후 실행 보류 |")
                 continue
             if args.force or (args.analyze and not source.exists()):
@@ -125,20 +130,27 @@ def main():
                     quota_blocked = True
                     skipped += 1
                     lines.append(
-                        f"| {vid} | {fixture.get('note','')} | - | - | 스킵 | - | "
+                        f"| {vid} | {language} | {fixture.get('note','')} | - | - | 스킵 | - | "
                         "Gemini 무료 티어 한도 도달 |")
                     continue
                 if returncode != 0:
                     failed += 1
-                    lines.append(f"| {vid} | {fixture.get('note','')} | - | - | 실패 | - | analyze 실패 |")
+                    lines.append(
+                        f"| {vid} | {language} | {fixture.get('note','')} | - | - | 실패 | - | "
+                        "analyze 실패 |")
                     continue
             if not source.exists():
                 skipped += 1
-                lines.append(f"| {vid} | {fixture.get('note','')} | - | - | 스킵 | - | --analyze 필요 |")
+                lines.append(
+                    f"| {vid} | {language} | {fixture.get('note','')} | - | - | 스킵 | - | "
+                    "--analyze 필요 |")
                 continue
 
             data = json.loads(source.read_text(encoding="utf-8"))
             errors, warnings = validate(data)
+            if data.get("_output_language") and data["_output_language"] != language:
+                errors = list(errors) + [
+                    f"_output_language={data['_output_language']!r} != fixture {language!r}"]
             guides = data.get("visual_guides", [])
             reviewed, hits, rate = semantic_result(
                 evaluation_file(vid, profile, language))
@@ -161,7 +173,8 @@ def main():
             if warnings and not detail_parts:
                 detail_parts.append(f"WARN×{len(warnings)}")
             lines.append(
-                f"| {vid} | {(data.get('title') or '?')[:30]} | {len(data.get('steps', []))} "
+                f"| {vid} | {language} | {(data.get('title') or '?')[:30]} | "
+                f"{len(data.get('steps', []))} "
                 f"| {len(guides)} | {'통과' if not errors else '실패'} | {semantic_text} "
                 f"| {'; '.join(detail_parts)} |")
 

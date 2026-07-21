@@ -55,8 +55,17 @@ def main():
     for domain, config in data.items():
         if domain.startswith("_"):
             continue
+        if not isinstance(config, dict):
+            errors.append(f"{domain}: 도메인 설정이 객체가 아님")
+            continue
+        suite = config.get("suite", "domain")
+        default_profile = config.get("profile", "generic")
+        default_language = config.get("language", "ko")
         videos = config.get("videos", [])
-        if not 8 <= len(videos) <= 12:
+        if suite == "smoke":
+            if not 2 <= len(videos) <= 6:
+                errors.append(f"{domain}: smoke 스위트 영상 {len(videos)}개 (계약: 2~6개)")
+        elif not 8 <= len(videos) <= 12:
             errors.append(f"{domain}: 영상 {len(videos)}개 (계약: 8~12개)")
         for index, video in enumerate(videos):
             tag = f"{domain}[{index}]"
@@ -65,9 +74,18 @@ def main():
                 errors.append(f"{tag}: 유효한 YouTube ID 없음")
                 continue
             vid = match.group(1)
-            if vid in seen:
-                errors.append(f"{tag}: 중복 ID {vid} (기존 {seen[vid]})")
-            seen[vid] = tag
+            profile = video.get("profile", default_profile)
+            language = video.get("language", default_language)
+            if not isinstance(profile, str) or not profile:
+                errors.append(f"{tag}: profile 비어 있음")
+            if not isinstance(language, str) or not language:
+                errors.append(f"{tag}: language 비어 있음")
+            # Same video may appear for multiple output languages / profiles.
+            key = (vid, profile, language)
+            if key in seen:
+                errors.append(
+                    f"{tag}: 중복 variant {vid}/{profile}.{language} (기존 {seen[key]})")
+            seen[key] = tag
             strata = video.get("strata", {})
             for dimension, allowed in dimensions.items():
                 value = strata.get(dimension)

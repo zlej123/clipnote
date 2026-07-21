@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import sys
 import tempfile
 import unittest
@@ -14,6 +15,45 @@ from clipnote import export as exporter
 from clipnote import render as renderer
 from clipnote.contract import validate
 from clipnote.common import analysis_file, frames_dir, hms, output_dir, video_id
+
+
+class FixtureCorpusTests(unittest.TestCase):
+    def test_en_output_smoke_suite_is_wired(self):
+        fixtures = json.loads(
+            (ROOT / "tests" / "fixtures" / "urls.json").read_text(encoding="utf-8"))
+        suite = fixtures["en_output"]
+        self.assertEqual("smoke", suite.get("suite"))
+        self.assertEqual("en", suite.get("language"))
+        videos = suite["videos"]
+        self.assertTrue(2 <= len(videos) <= 6)
+        profiles = {video.get("profile", suite["profile"]) for video in videos}
+        self.assertIn("recipe", profiles)
+        self.assertIn("generic", profiles)
+        for video in videos:
+            self.assertEqual("en", video.get("language", suite["language"]))
+            self.assertEqual("en", video["strata"]["source_language"])
+
+    def test_fixture_variants_may_share_video_id_across_languages(self):
+        """Same YouTube id may appear for ko domain coverage and en_output smoke."""
+        fixtures = json.loads(
+            (ROOT / "tests" / "fixtures" / "urls.json").read_text(encoding="utf-8"))
+        keys = []
+        for domain, config in fixtures.items():
+            if domain.startswith("_") or not isinstance(config, dict):
+                continue
+            default_profile = config.get("profile", "generic")
+            default_language = config.get("language", "ko")
+            for video in config.get("videos", []):
+                match = re.search(
+                    r"(?:v=|youtu\.be/|shorts/)([\w-]{11})", video["url"])
+                self.assertIsNotNone(match, video["url"])
+                keys.append((
+                    match.group(1),
+                    video.get("profile", default_profile),
+                    video.get("language", default_language),
+                ))
+        self.assertEqual(len(keys), len(set(keys)))
+        self.assertTrue(any(language == "en" for _, _, language in keys))
 
 
 class CoreContractTests(unittest.TestCase):
