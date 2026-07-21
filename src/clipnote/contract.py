@@ -3,7 +3,16 @@
 
 AMBIGUITY_TYPES = {"size", "thickness", "color", "state", "amount",
                    "position", "angle", "action", "texture"}
-VAGUE = ["적당히", "적당량", "알맞게", "대충", "적절히", "먹기 좋게"]
+# Multilingual vague fillers that defeat the purpose of guide_text.
+VAGUE = [
+    # ko
+    "적당히", "적당량", "알맞게", "대충", "적절히", "먹기 좋게",
+    # en
+    "appropriately", "suitably", "roughly", "about right", "as needed",
+    "to taste", "until done", "just enough",
+    # ja
+    "適度", "適当", "ほどよく", "いい感じ",
+]
 
 
 def validate(data: dict):

@@ -10,14 +10,13 @@ video/profile/language under work/analyses/.
 import argparse
 import json
 import os
-import re
 import time
 from urllib.error import HTTPError
 import subprocess
 import sys
 import urllib.request
 from pathlib import Path
-from .common import analysis_file, data_root
+from .common import analysis_file, data_root, hms, video_id as parse_video_id
 from .contract import validate
 sys.stdout.reconfigure(encoding="utf-8")  # Windows cp949 콘솔 대응
 
@@ -61,10 +60,11 @@ API = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateC
 
 
 def video_id(url: str) -> str:
-    m = re.search(r"(?:v=|youtu\.be/|shorts/)([\w-]{11})", url)
-    if not m:
-        sys.exit(f"유튜브 URL에서 video id를 못 찾음: {url}")
-    return m.group(1)
+    """CLI helper: parse YouTube id or exit with a message."""
+    try:
+        return parse_video_id(url)
+    except ValueError as error:
+        sys.exit(str(error))
 
 
 def fetch_duration(url: str) -> int:
@@ -85,10 +85,6 @@ def mmss_to_sec(v):
     for p in parts:
         sec = sec * 60 + p
     return sec
-
-
-def hms(sec: int) -> str:
-    return f"{sec // 60}:{sec % 60:02d}"
 
 
 def generate_json(parts: list, model: str, key: str,
@@ -153,7 +149,7 @@ def normalize(data: dict) -> dict:
             guide["source_phrase"] = guide["phrase"]
             normalization_warnings.append(
                 f"{guide.get('id', index)}: source_phrase를 phrase로 보완")
-        if not guide.get("importance"):
+        if guide.get("importance") is None:
             guide["importance"] = max(0.5, 1.0 - index * 0.1)
             normalization_warnings.append(
                 f"{guide.get('id', index)}: importance 자동 보완")

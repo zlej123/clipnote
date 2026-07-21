@@ -14,7 +14,8 @@ import re
 import shutil
 import sys
 from pathlib import Path
-from .common import analysis_file, data_root, frames_dir as artifact_frames_dir, output_dir
+from .common import (
+    analysis_file, data_root, frames_dir as artifact_frames_dir, hms, output_dir)
 sys.stdout.reconfigure(encoding="utf-8")
 
 PKG = Path(__file__).parent
@@ -27,10 +28,6 @@ def load_template(profile: str) -> str:
     return p.read_text(encoding="utf-8")
 
 SLOTS = ("before", "center", "after")
-
-
-def hms(sec: int) -> str:
-    return f"{sec // 60}:{sec % 60:02d}"
 
 
 

@@ -17,7 +17,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from .common import analysis_file, data_root, frames_dir
+from .common import analysis_file, data_root, frames_dir, hms
 
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -41,10 +41,6 @@ def ensure_video(vid: str) -> Path:
     else:
         print("[1/3] 영상 캐시 사용")
     return mp4
-
-
-def hms(sec: int) -> str:
-    return f"{sec // 60}:{sec % 60:02d}"
 
 
 def candidate_times(step: dict, guide: dict, duration: int):
@@ -190,9 +186,9 @@ def main():
 
     out = frames_dir(data_root(), vid, args.profile, args.language)
     out.mkdir(parents=True, exist_ok=True)
-    for stale in list(out.glob("vg-*.jpg")) + [out / "contact-sheet.jpg",
-                                               out / "picks.json",
-                                               out / "picks-meta.json"]:
+    # Refresh candidate JPEGs only. Keep picks.json / picks-meta.json so a
+    # re-capture does not wipe AI or human selections (picker re-reads them).
+    for stale in list(out.glob("vg-*.jpg")) + [out / "contact-sheet.jpg"]:
         if stale.exists():
             stale.unlink()
 

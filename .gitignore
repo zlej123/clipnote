@@ -5,6 +5,11 @@ __pycache__/
 .venv/
 venv/
 
+# Packaging artifacts
+build/
+dist/
+*.whl
+
 # Secrets
 .env
 *.key
