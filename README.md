@@ -115,10 +115,11 @@ Drop three files into `src/clipnote/skill-core/profiles/<name>/`: `prompt.md` (c
 ```bash
 python -m unittest discover -s tests        # contract / normalization / selection / export
 python tests/validate_fixtures.py --online  # fixture availability + strata
-python tests/batch.py                        # 6-domain structural + semantic regression
+python tests/batch.py                        # domain structural + semantic regression
+python tests/batch.py --domain en_output --analyze   # English document-language smoke
 ```
 
-`tests/fixtures/urls.json` is a regression corpus of 8–12 videos per domain, stratified by length, audio, captions, editing style, framing, and source language.
+`tests/fixtures/urls.json` is a regression corpus of 8–12 videos per domain, stratified by length, audio, captions, editing style, framing, and source language. The `en_output` suite (`suite: smoke`) reuses a few English-source videos with `--language en` so English **output** stays regression-covered for GitHub EN users (separate from Korean-output domain runs). After capture, drop picker evaluations at `tests/evaluations/<id>.<profile>.en.json`.
 
 ## Limits
 
