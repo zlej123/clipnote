@@ -4,11 +4,15 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+.pytest_cache/
 
 # Packaging artifacts
 build/
 dist/
 *.whl
+
+# OS
+.DS_Store
 
 # Secrets
 .env

@@ -1,0 +1,6 @@
+{
+  "contract": "visual_guides",
+  "normalizer": "visual_guides",
+  "uses_visual_guides": true,
+  "requires_duration": true
+}

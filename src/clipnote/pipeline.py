@@ -24,6 +24,7 @@ import sys
 from pathlib import Path
 
 from .common import analysis_file, data_root, frames_dir, video_id
+from .profiles import load_profile
 
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -40,6 +41,9 @@ def main():
     ap.add_argument("--profile", default="generic")
     ap.add_argument("--language", default="ko")
     ap.add_argument("--max-guides", default="5")
+    ap.add_argument("--max-claims", default="20")
+    ap.add_argument("--max-duration", type=int,
+                    help="허용 영상 길이(초). 프로필 기본값보다 우선")
     ap.add_argument("--model", default="gemini-flash-lite-latest")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--links-only", action="store_true",
@@ -62,15 +66,22 @@ def main():
     except ValueError as error:
         sys.exit(str(error))
     common_flags = ["--profile", args.profile, "--language", args.language]
+    profile_config = load_profile(args.profile)
 
     print("[pipeline] 1) 분석")
-    analyze_flags = ["--model", args.model, "--max-guides", str(args.max_guides)]
+    analyze_flags = [
+        "--model", args.model,
+        "--max-guides", str(args.max_guides),
+        "--max-claims", str(args.max_claims),
+    ]
+    if args.max_duration is not None:
+        analyze_flags += ["--max-duration", str(args.max_duration)]
     if args.force:
         analyze_flags.append("--force")
     run("analyze", args.url, *common_flags, *analyze_flags)
 
     render_flags = list(common_flags)
-    if args.links_only:
+    if args.links_only or not profile_config["uses_visual_guides"]:
         print("[pipeline] 2) 렌더 (링크 전용)")
     else:
         print("[pipeline] 2) 후보 프레임 추출")

@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 from .common import (
     analysis_file, data_root, frames_dir as artifact_frames_dir, hms, output_dir)
+from .claim_packet import write_claim_packet
 sys.stdout.reconfigure(encoding="utf-8")
 
 PKG = Path(__file__).parent
@@ -112,6 +113,36 @@ def build_context(vid: str, data: dict, picks: dict, source_frames: Path,
     """image_refs: 클라이언트가 직접 캡처·호스팅한 이미지 참조(guide_id -> URL/경로).
     디스크 프레임보다 우선한다. 서버/확장처럼 프레임이 로컬에 없는 호출자용."""
     image_refs = image_refs or {}
+    if "claims" in data:
+        claims = []
+        for claim in data.get("claims", []):
+            anchor = claim.get("source_anchor") or {}
+            timestamp = anchor.get("timestamp_start")
+            claims.append({
+                **claim,
+                "quote": anchor.get("quote", ""),
+                "entities_text": ", ".join(claim.get("entities") or []),
+                "timestamp_hms": hms(timestamp) if timestamp is not None else "",
+                "timestamp_link": (
+                    f"https://youtu.be/{vid}?t={timestamp}"
+                    if timestamp is not None else f"https://youtu.be/{vid}"),
+                "verification_questions": [
+                    {"text": question}
+                    for question in claim.get("verification_questions", [])
+                ],
+                "falsification_questions": [
+                    {"text": question}
+                    for question in claim.get("falsification_questions", [])
+                ],
+            })
+        return {
+            "title": data.get("title", ""),
+            "summary": data.get("summary", ""),
+            "claims": claims,
+            "video_title": data.get("title", ""),
+            "video_url": f"https://youtu.be/{vid}",
+        }
+
     duration = data.get("_duration")
     by_step = {}
     for guide in data.get("visual_guides", []):
@@ -224,13 +255,18 @@ def main():
     out_md = out_dir / "document.md"
     out_md.write_text(md, encoding="utf-8")
 
-    guides = [guide for step in ctx["steps"]
-              for guide in step["visual_guides"]]
-    shots = sum(1 for guide in guides if guide["has_screenshot"])
-    links = len(guides) - shots
     print(f"완료: {out_md}")
-    print(f"  명시적으로 선택된 스크린샷: {shots}개, 링크 폴백: {links}개")
-    print(f"  이미지 폴더: {images_dir}")
+    if "claims" in ctx:
+        packet = write_claim_packet(out_dir / "claim-packet.json", vid, data)
+        print(f"  투자 주장: {len(ctx['claims'])}개 (모두 미검증)")
+        print(f"  Project 2035 ClaimPacket: {packet}")
+    else:
+        guides = [guide for step in ctx["steps"]
+                  for guide in step["visual_guides"]]
+        shots = sum(1 for guide in guides if guide["has_screenshot"])
+        links = len(guides) - shots
+        print(f"  명시적으로 선택된 스크린샷: {shots}개, 링크 폴백: {links}개")
+        print(f"  이미지 폴더: {images_dir}")
 
 
 if __name__ == "__main__":

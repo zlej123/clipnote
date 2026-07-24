@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "clipnote"
-version = "0.2.0"
-description = "Turn how-to YouTube videos into follow-along documents with visual guides at ambiguous moments."
+version = "0.3.0"
+description = "Turn YouTube videos into source-anchored documents through profile-specific contracts."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
@@ -23,6 +23,7 @@ clipnote-analyze = "clipnote.analyze:main"
 clipnote-capture = "clipnote.capture:main"
 clipnote-render = "clipnote.render:main"
 clipnote-export = "clipnote.export:main"
+thesis-radar = "clipnote.thesis_radar:main"
 
 [tool.setuptools]
 package-dir = { "" = "src" }

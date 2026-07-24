@@ -1,0 +1,8 @@
+{
+  "contract": "investment_claims",
+  "normalizer": "investment_claims",
+  "uses_visual_guides": false,
+  "requires_duration": true,
+  "default_max_duration_seconds": 3600,
+  "default_max_claims": 20
+}

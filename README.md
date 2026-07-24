@@ -1,6 +1,6 @@
 # clipnote
 
-Turns videos into documents, recipes, and user manuals.
+Turns videos into source-anchored documents through profile-specific contracts.
 
 Instructions like *"cut it bite-sized"* or *"simmer until the sauce reduces"* don't mean much as text. clipnote finds the frame where that state is actually visible and embeds it next to the step. It works across domains — cooking, repair, crafts, beauty, fitness, software — and exports to Notion, Obsidian, and Goodnotes.
 
@@ -9,6 +9,11 @@ Gemini analyzes the video itself (visuals and audio), so it works on videos with
 This repo is the Python core and the language-neutral `skill-core/` assets. If you just want to use
 clipnote, the clients built on it are [clipnote-apple](https://github.com/zlej123/clipnote-apple)
 (iOS/iPadOS/macOS) and [clipnote-extension](https://github.com/zlej123/clipnote-extension) (Chrome).
+
+Version 0.3 also includes **Thesis Radar**, a CLI/server-only profile that
+extracts attributable investment claims, verbatim quotes, timestamps, and
+verification questions. It does not verify claims or make investment
+decisions. See [docs/THESIS_RADAR.md](docs/THESIS_RADAR.md).
 
 ## Example
 
@@ -53,6 +58,16 @@ clipnote "https://www.youtube.com/watch?v=..." --profile recipe --language en \
 ```
 
 Options: `--profile generic|recipe`, `--language ko|en|ja|...`, `--max-guides N`, `--model`, `--auto-pick`, `--export bundle|obsidian|goodnotes|notion` (Notion also needs `--parent <page-id>` and `NOTION_TOKEN`).
+
+For a public investment video:
+
+```bash
+thesis-radar "https://www.youtube.com/watch?v=..." --language ko --max-claims 20
+```
+
+This produces `document.md` and a Project 2035-ready `claim-packet.json`.
+Thesis Radar does not run frame capture, Apple/extension code, or execution
+APIs.
 
 With `--auto-pick`, Gemini vision chooses among the three candidates per guide (or falls back to a
 timestamp link when none fits). The regenerated picker.html shows the AI picks pre-selected; if you
@@ -108,7 +123,9 @@ The skill clones this repo on first use and asks for a Gemini API key if none is
 
 ## Adding a domain profile
 
-Drop three files into `src/clipnote/skill-core/profiles/<name>/`: `prompt.md` (containing `{{RULES}}`), `schema.json`, `template.md`. No pipeline changes needed.
+Drop `prompt.md`, `schema.json`, `template.md`, and `profile.json` into
+`src/clipnote/skill-core/profiles/<name>/`. The profile manifest selects its
+contract, normalizer, visual-capture capability, and duration limit.
 
 ## Tests
 
@@ -117,16 +134,19 @@ python -m unittest discover -s tests        # contract / normalization / selecti
 python tests/validate_fixtures.py --online  # fixture availability + strata
 python tests/batch.py                        # domain structural + semantic regression
 python tests/batch.py --domain en_output --analyze   # English document-language smoke
+python tests/thesis_radar/validate_corpus.py         # fails closed until 5–10 gold videos exist
 ```
 
 `tests/fixtures/urls.json` is a regression corpus of 8–12 videos per domain, stratified by length, audio, captions, editing style, framing, and source language. The `en_output` suite (`suite: smoke`) reuses a few English-source videos with `--language en` so English **output** stays regression-covered for GitHub EN users (separate from Korean-output domain runs). After capture, drop picker evaluations at `tests/evaluations/<id>.<profile>.en.json`.
 
 ## Limits
 
-- Public videos only; under 30 minutes recommended.
+- Public videos only. Visual guides recommend under 30 minutes; Thesis Radar
+  defaults to a hard 60-minute limit.
 - Free-tier Gemini rate-limits under batch load. Default model is `gemini-flash-lite-latest`.
 - Timestamps are accurate to about ±2–3 s; the before/center/after candidates cover the gap.
-- Not useful for videos with nothing visual to show (lectures, vlogs, reviews).
+- Visual-guide profiles are not useful for talking-head lectures or reviews;
+  investment content uses the separate Thesis Radar profile.
 
 ## License
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Analyze a YouTube how-to video into normalized steps and visual guides.
+"""Analyze a YouTube video with a selected Clipnote profile.
 
 Usage:
     py -3.11 analyze.py URL [--profile generic] [--language ko] [--max-guides 5]
@@ -18,17 +18,17 @@ import urllib.request
 from pathlib import Path
 from .common import analysis_file, data_root, hms, video_id as parse_video_id
 from .contract import validate
+from .normalizers.common import mmss_to_sec  # Backward-compatible public import.
+from .normalizers.investment_claims import normalize_investment_claims
+from .normalizers.visual_guides import normalize_visual_guides
+from .profiles import load_profile
 sys.stdout.reconfigure(encoding="utf-8")  # Windows cp949 콘솔 대응
 
 PKG = Path(__file__).parent
 RULES = (PKG / "skill-core" / "engine" / "rules.md").read_text(encoding="utf-8")
-TYPE_ALIASES = {
-    "shape": "state",
-    "pattern": "texture",
-    "direction": "position",
-    "setting": "position",
-    "location": "position",
-    "length": "size",
+NORMALIZERS = {
+    "visual_guides": normalize_visual_guides,
+    "investment_claims": normalize_investment_claims,
 }
 
 
@@ -46,7 +46,8 @@ def load_schema(profile: str) -> dict:
     return schema
 
 
-def load_prompt(profile: str, duration_hms: str, language: str, max_guides: int) -> str:
+def load_prompt(profile: str, duration_hms: str, language: str,
+                max_guides: int, max_claims: int = 20) -> str:
     p = PKG / "skill-core" / "profiles" / profile / "prompt.md"
     if not p.exists():
         sys.exit(f"알 수 없는 프로파일: {profile} ({p} 없음)")
@@ -54,7 +55,8 @@ def load_prompt(profile: str, duration_hms: str, language: str, max_guides: int)
             .replace("{{RULES}}", RULES)
             .replace("{DURATION}", duration_hms)
             .replace("{OUTPUT_LANGUAGE}", language)
-            .replace("{MAX_VISUAL_GUIDES}", str(max_guides)))
+            .replace("{MAX_VISUAL_GUIDES}", str(max_guides))
+            .replace("{MAX_CLAIMS}", str(max_claims)))
 
 API = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
@@ -67,24 +69,48 @@ def video_id(url: str) -> str:
         sys.exit(str(error))
 
 
+def normalize_video_metadata(payload: dict, url: str) -> dict:
+    """Keep only stable source fields from yt-dlp's much larger response."""
+    duration = payload.get("duration")
+    if not isinstance(duration, (int, float)) or duration <= 0:
+        raise ValueError("영상 길이가 없거나 유효하지 않음")
+    upload_date = payload.get("upload_date")
+    published_at = None
+    if isinstance(upload_date, str) and len(upload_date) == 8:
+        published_at = (
+            f"{upload_date[:4]}-{upload_date[4:6]}-{upload_date[6:8]}")
+    return {
+        "type": "youtube",
+        "url": url,
+        "video_id": payload.get("id"),
+        "title": payload.get("title"),
+        "author": payload.get("uploader") or payload.get("channel"),
+        "published_at": published_at,
+        "duration_seconds": int(duration),
+    }
+
+
+def fetch_video_metadata(url: str) -> dict:
+    result = subprocess.run(
+        [
+            sys.executable, "-m", "yt_dlp",
+            "--skip-download", "--no-playlist", "--dump-single-json", url,
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        sys.exit(f"영상 메타데이터 조회 실패:\n{result.stderr[-1000:]}")
+    try:
+        payload = json.loads(result.stdout)
+        return normalize_video_metadata(payload, url)
+    except (json.JSONDecodeError, ValueError) as error:
+        sys.exit(f"영상 메타데이터 해석 실패: {error}")
+
+
 def fetch_duration(url: str) -> int:
-    r = subprocess.run([sys.executable, "-m", "yt_dlp", "--skip-download",
-                        "--print", "duration", url],
-                       capture_output=True, text=True)
-    if r.returncode != 0 or not r.stdout.strip().isdigit():
-        sys.exit(f"영상 길이 조회 실패:\n{r.stderr[-1000:]}")
-    return int(r.stdout.strip())
-
-
-def mmss_to_sec(v):
-    """'MM:SS' 또는 'H:MM:SS' -> 초. 이미 숫자면 그대로."""
-    if v is None or isinstance(v, int):
-        return v
-    parts = [int(p) for p in str(v).split(":")]
-    sec = 0
-    for p in parts:
-        sec = sec * 60 + p
-    return sec
+    """Compatibility wrapper retained for existing callers."""
+    return fetch_video_metadata(url)["duration_seconds"]
 
 
 def generate_json(parts: list, model: str, key: str,
@@ -136,31 +162,13 @@ def call_gemini(url: str, prompt: str, model: str, key: str,
         model, key, schema, retries)
 
 
-def normalize(data: dict) -> dict:
-    normalization_warnings = []
-    for step in data.get("steps", []):
-        step["t_start"] = mmss_to_sec(step.get("t_start"))
-        step["t_end"] = mmss_to_sec(step.get("t_end"))
-        step.pop("ambiguity", None)
-    for index, guide in enumerate(data.get("visual_guides", [])):
-        guide["best_visual_timestamp"] = mmss_to_sec(
-            guide.get("best_visual_timestamp"))
-        if not guide.get("source_phrase") and guide.get("phrase"):
-            guide["source_phrase"] = guide["phrase"]
-            normalization_warnings.append(
-                f"{guide.get('id', index)}: source_phrase를 phrase로 보완")
-        if guide.get("importance") is None:
-            guide["importance"] = max(0.5, 1.0 - index * 0.1)
-            normalization_warnings.append(
-                f"{guide.get('id', index)}: importance 자동 보완")
-        guide_type = guide.get("type")
-        if guide_type in TYPE_ALIASES:
-            guide["type"] = TYPE_ALIASES[guide_type]
-            normalization_warnings.append(
-                f"{guide.get('id', index)}: type {guide_type}→{guide['type']}")
-    if normalization_warnings:
-        data["_normalization_warnings"] = normalization_warnings
-    return data
+def normalize(data: dict, profile: str = None) -> dict:
+    profile = profile or data.get("_profile") or "generic"
+    normalizer_name = load_profile(profile)["normalizer"]
+    normalizer = NORMALIZERS.get(normalizer_name)
+    if normalizer is None:
+        raise ValueError(f"알 수 없는 normalizer: {normalizer_name}")
+    return normalizer(data)
 
 
 def main():
@@ -173,25 +181,54 @@ def main():
         default=os.environ.get("CLIPNOTE_LANGUAGE", "ko"),
         help="사용자 프로파일 출력 언어(BCP-47, 예: ko, en, ja)")
     ap.add_argument("--max-guides", type=int, default=5, help="최대 시각 가이드 수")
+    ap.add_argument("--max-claims", type=int, default=20, help="최대 투자 주장 수")
+    ap.add_argument(
+        "--max-duration",
+        type=int,
+        help="허용 영상 길이(초). 프로필 기본값보다 우선")
     ap.add_argument("--force", action="store_true", help="캐시 무시하고 재분석")
     args = ap.parse_args()
     if args.max_guides < 0:
         ap.error("--max-guides는 0 이상이어야 합니다.")
+    if args.max_claims < 1:
+        ap.error("--max-claims는 1 이상이어야 합니다.")
+    if args.max_duration is not None and args.max_duration < 1:
+        ap.error("--max-duration은 1초 이상이어야 합니다.")
 
     vid = video_id(args.url)
+    profile_config = load_profile(args.profile)
     out_file = analysis_file(data_root(), vid, args.profile, args.language)
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
-    duration = fetch_duration(args.url)
+    source_metadata = fetch_video_metadata(args.url)
+    duration = source_metadata["duration_seconds"]
     print(f"영상 길이: {hms(duration)} ({duration}s)")
+    max_duration = args.max_duration or profile_config.get(
+        "default_max_duration_seconds")
+    if max_duration and duration > max_duration:
+        sys.exit(
+            f"영상이 프로파일 길이 상한을 초과했습니다 "
+            f"({duration}s>{max_duration}s). --max-duration으로 명시적으로 조정하세요.")
 
     if out_file.exists() and not args.force:
         print(f"[cache] {out_file} 사용 (재분석은 --force)")
         data = json.loads(out_file.read_text(encoding="utf-8"))
+        if not data.get("_source"):
+            data["_source"] = source_metadata
+            out_file.write_text(
+                json.dumps(data, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
         if data.get("_max_visual_guides") != args.max_guides:
+            if profile_config["uses_visual_guides"]:
+                sys.exit(
+                    f"캐시의 max-guides={data.get('_max_visual_guides')}가 "
+                    f"요청값 {args.max_guides}와 다릅니다. --force로 재분석하세요.")
+        if not profile_config["uses_visual_guides"] and \
+                data.get("_max_claims") != args.max_claims:
             sys.exit(
-                f"캐시의 max-guides={data.get('_max_visual_guides')}가 "
-                f"요청값 {args.max_guides}와 다릅니다. --force로 재분석하세요.")
+                f"캐시의 max-claims={data.get('_max_claims')}가 "
+                f"요청값 {args.max_claims}와 다릅니다. --force로 재분석하세요.")
         if data.get("_model") and data["_model"] != args.model:
             sys.exit(
                 f"캐시 모델 {data['_model']}이 요청 모델 {args.model}과 다릅니다. "
@@ -205,19 +242,25 @@ def main():
         if not key:
             sys.exit("GEMINI_API_KEY 환경변수가 없습니다.")
         prompt = load_prompt(
-            args.profile, hms(duration), args.language, args.max_guides)
+            args.profile, hms(duration), args.language,
+            args.max_guides, args.max_claims)
         print(f"[1/2] Gemini({args.model}) 영상 분석 중... (수십 초~수 분)")
         try:
             data = normalize(call_gemini(
-                args.url, prompt, args.model, key, load_schema(args.profile)))
+                args.url, prompt, args.model, key, load_schema(args.profile)),
+                args.profile)
         except RateLimitError as error:
             print("Gemini 무료 티어/속도 한도에 도달했습니다.")
             print(str(error))
             sys.exit(75)
         data["_duration"] = duration
+        data["_source"] = source_metadata
         data["_profile"] = args.profile
         data["_output_language"] = args.language
-        data["_max_visual_guides"] = args.max_guides
+        if profile_config["uses_visual_guides"]:
+            data["_max_visual_guides"] = args.max_guides
+        else:
+            data["_max_claims"] = args.max_claims
         data["_model"] = args.model
         errors, warnings = validate(data)
         if errors:
@@ -228,7 +271,12 @@ def main():
         print(f"[2/2] 저장: {out_file}\n")
 
     print(f"== {data.get('title', '?')} ==")
-    print(f"준비물 {len(data.get('materials') or data.get('ingredients') or [])}종 / 단계 {len(data.get('steps', []))}개\n")
+    if profile_config["uses_visual_guides"]:
+        print(
+            f"준비물 {len(data.get('materials') or data.get('ingredients') or [])}종 "
+            f"/ 단계 {len(data.get('steps', []))}개\n")
+    else:
+        print(f"투자 주장 {len(data.get('claims', []))}개\n")
 
     guides = data.get("visual_guides", [])
     guides_by_step = {}
@@ -253,8 +301,17 @@ def main():
                 print(f"       검증 링크: https://youtu.be/{vid}?t={ts}  ({hms(ts)})")
         print()
 
-    print(f"시각 가이드 {len(guides)}개 (범위 밖 {bad}개).")
-    print("통과 기준: 범위 밖 0개 + 상위 3개 후보 중 적합한 장면 포함률 90% 이상.")
+    if profile_config["uses_visual_guides"]:
+        print(f"시각 가이드 {len(guides)}개 (범위 밖 {bad}개).")
+        print("통과 기준: 범위 밖 0개 + 상위 3개 후보 중 적합한 장면 포함률 90% 이상.")
+    else:
+        for claim in data.get("claims", []):
+            anchor = claim.get("source_anchor", {})
+            start = anchor.get("timestamp_start")
+            print(
+                f"  {claim.get('id')}: [{claim.get('claim_type')}] "
+                f"{claim.get('statement')} → {hms(start)}")
+        print("모든 주장은 미검증 상태이며 Project 2035 검토 전 투자 판단에 사용하지 않습니다.")
 
 
 if __name__ == "__main__":

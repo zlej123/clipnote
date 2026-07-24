@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Clipnote Thesis Radar ClaimPacket v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "source",
+    "extraction",
+    "title",
+    "summary",
+    "claims",
+    "review_queue"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "url",
+        "video_id",
+        "title",
+        "author",
+        "published_at"
+      ],
+      "properties": {
+        "type": {"const": "youtube"},
+        "url": {"type": "string"},
+        "video_id": {"type": "string"},
+        "title": {"type": ["string", "null"]},
+        "author": {"type": ["string", "null"]},
+        "published_at": {"type": ["string", "null"]}
+      }
+    },
+    "extraction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile", "model", "output_language"],
+      "properties": {
+        "profile": {"const": "investment_claims"},
+        "model": {"type": ["string", "null"]},
+        "output_language": {"type": ["string", "null"]}
+      }
+    },
+    "title": {"type": ["string", "null"]},
+    "summary": {"type": ["string", "null"]},
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "schema.json#/properties/claims/items"
+      }
+    },
+    "review_queue": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claim_id",
+          "verification_status",
+          "priority_score",
+          "priority_band"
+        ],
+        "properties": {
+          "claim_id": {"type": "string"},
+          "verification_status": {"const": "unverified"},
+          "priority_score": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9
+          },
+          "priority_band": {
+            "enum": ["low", "medium", "high"]
+          }
+        }
+      }
+    }
+  }
+}

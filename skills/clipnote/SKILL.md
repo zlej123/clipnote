@@ -20,6 +20,8 @@ via swappable profiles. Output is a portable document that exports to Notion, Ob
 
 <Do_Not_Use_When>
 - Video is a talking-head lecture, vlog, review, or podcast with no visually-resolvable actions.
+- Investment, market, or company-analysis talking-head content — use the separate
+  `thesis-radar` skill to extract source-anchored claims.
 - Content is safety-critical (medical, mains electricity, gas, heavy machinery) — needs an expert-reviewed profile.
 </Do_Not_Use_When>
 

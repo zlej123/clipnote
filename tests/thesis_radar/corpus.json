@@ -1,0 +1,14 @@
+{
+  "_status": "awaiting_human_labels",
+  "_required_video_count": {"minimum": 5, "maximum": 10},
+  "_note": "Do not run online prompt tuning until 5-10 videos have independent human gold labels.",
+  "quality_gate": {
+    "precision": 0.85,
+    "recall": 0.8,
+    "type_accuracy": 0.9,
+    "attribution_accuracy": 0.95,
+    "quote_fidelity": 0.9,
+    "max_mean_timestamp_error_seconds": 5.0
+  },
+  "videos": []
+}

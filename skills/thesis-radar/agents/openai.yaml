@@ -1,0 +1,4 @@
+interface:
+  display_name: "Thesis Radar"
+  short_description: "Extract source-anchored investment claims"
+  default_prompt: "Use $thesis-radar to extract and review source-anchored claims from this public investment video."
