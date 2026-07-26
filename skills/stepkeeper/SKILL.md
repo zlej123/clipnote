@@ -1,9 +1,9 @@
 ---
-name: clipnote
+name: stepkeeper
 description: Turn a how-to YouTube video into a follow-along document where ambiguous spoken instructions ("bite-sized", "until it reduces") are backed by the exact video frames that show them. Use when the user shares a YouTube how-to/tutorial URL and wants a clean visual guide document, optionally exported to Notion/Obsidian/Goodnotes.
 ---
 
-# clipnote
+# stepkeeper
 
 <Purpose>
 Convert a how-to YouTube video into a follow-along document where every vague verbal instruction
@@ -24,12 +24,12 @@ via swappable profiles. Output is a portable document that exports to Notion, Ob
 </Do_Not_Use_When>
 
 <Prerequisites>
-- The clipnote repo on disk. If absent, clone it first:
-  `git clone https://github.com/zlej123/clipnote` and run all commands from that directory.
+- The stepkeeper repo on disk. If absent, clone it first:
+  `git clone https://github.com/zlej123/stepkeeper` and run all commands from that directory.
 - Environment variable `GEMINI_API_KEY` (Google AI Studio key). If missing, ask the user for one
   (free at https://aistudio.google.com/apikey) — never proceed without it.
 - `ffmpeg` on PATH (frame capture; not needed for `--links-only`).
-- `pip install -e .` from the repo (installs deps and the `clipnote` command).
+- `pip install -e .` from the repo (installs deps and the `stepkeeper` command).
 </Prerequisites>
 
 <Contract>
@@ -46,28 +46,28 @@ One command drives analyze → capture → pick → render → export.
 `--language` is the **document** language (BCP-47: `en`, `ko`, `ja`, …), not the video’s spoken language. English how-to videos work with either `en` or `ko` output.
 
 1. Fully automatic (no ffmpeg, timestamp links instead of screenshots):
-   - Korean doc: `clipnote <URL> --profile generic --language ko --links-only`
-   - English doc (English-speaking users): `clipnote <URL> --profile generic --language en --links-only`
+   - Korean doc: `stepkeeper <URL> --profile generic --language ko --links-only`
+   - English doc (English-speaking users): `stepkeeper <URL> --profile generic --language en --links-only`
 
 2. Fully automatic with screenshots (Gemini picks the frame per guide):
-   `clipnote <URL> --profile recipe --language en --auto-pick --export goodnotes`
+   `stepkeeper <URL> --profile recipe --language en --auto-pick --export goodnotes`
    Review the regenerated `picker.html` (AI picks pre-selected); if the user corrects any,
-   run `python -m clipnote.feedback add <semantic-evaluation.json>` to log it.
+   run `python -m stepkeeper.feedback add <semantic-evaluation.json>` to log it.
 
 3. Manual/agent frame selection:
-   - `clipnote <URL> --profile recipe --language en`
+   - `stepkeeper <URL> --profile recipe --language en`
    - Agent path: read the three candidate frames under `work/frames/…` directly, write
      `picks.json` yourself (semantic judgment), then re-run with
      `--picks <picks.json> --export goodnotes` (or `obsidian`/`bundle`/`notion`).
 
 Notion export needs `NOTION_TOKEN` and `--parent <page-id>`.
-Artifacts go under the current directory (`CLIPNOTE_DATA` overrides).
+Artifacts go under the current directory (`STEPKEEPER_DATA` overrides).
 </How_To_Run>
 
 <Profiles>
 - `generic`: any how-to (materials + steps + visual guides).
 - `recipe`: cooking-tuned (adds servings, ingredient wording).
-- Add a domain by dropping `src/clipnote/skill-core/profiles/<name>/{prompt.md,schema.json,template.md}`.
+- Add a domain by dropping `src/stepkeeper/skill-core/profiles/<name>/{prompt.md,schema.json,template.md}`.
 </Profiles>
 
 <Outputs>

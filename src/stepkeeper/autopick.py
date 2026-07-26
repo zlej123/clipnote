@@ -2,7 +2,7 @@
 """AI frame selection: Gemini vision picks one candidate per visual guide.
 
 Usage:
-    python -m clipnote.autopick VIDEO_ID --profile generic --language ko
+    python -m stepkeeper.autopick VIDEO_ID --profile generic --language ko
 
 Reads the analysis and the before/center/after candidates from disk, asks
 Gemini which frame actually shows each guide's `what_to_show` (or none),
@@ -122,7 +122,7 @@ def main():
     picker = build_picker(args.video_id, args.profile, args.language)
     print(f"검토용 picker (AI 선택 미리표시): {picker}")
     print("다르게 고쳤다면 semantic-evaluation.json을 내려받아 "
-          "`python -m clipnote.feedback add <파일>` 로 기록하세요.")
+          "`python -m stepkeeper.feedback add <파일>` 로 기록하세요.")
 
 
 if __name__ == "__main__":

@@ -29,7 +29,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 
 def run(module: str, *args: str) -> None:
-    result = subprocess.run([sys.executable, "-m", f"clipnote.{module}", *args])
+    result = subprocess.run([sys.executable, "-m", f"stepkeeper.{module}", *args])
     if result.returncode != 0:
         sys.exit(f"[pipeline] {module} 실패 (exit {result.returncode})")
 

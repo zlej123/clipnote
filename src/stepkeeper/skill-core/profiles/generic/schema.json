@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$comment": "범용 how-to 프로파일. 시간 값은 MM:SS 문자열이며 클라이언트가 초 단위로 정규화한다.",
-  "title": "clipnote generic analysis result",
+  "title": "stepkeeper generic analysis result",
   "type": "object",
   "required": ["title", "summary", "category", "materials", "steps", "visual_guides"],
   "properties": {

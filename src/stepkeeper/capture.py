@@ -2,11 +2,11 @@
 """Extract three candidate frames for each independent visual guide.
 
 Usage:
-    python -m clipnote.capture VIDEO_ID --profile generic --language ko
+    python -m stepkeeper.capture VIDEO_ID --profile generic --language ko
 
 picker.html lets a person choose one candidate per guide (or mark all
 unsuitable) and download picks.json / semantic-evaluation.json.
-When picks.json already exists (e.g. written by clipnote.autopick), the picker
+When picks.json already exists (e.g. written by stepkeeper.autopick), the picker
 pre-selects those picks and the evaluation download records agree/disagree
 per guide — that file doubles as the auto-pick feedback record.
 """
@@ -208,7 +208,7 @@ def main():
     print("[3/3] picker.html 생성...")
     picker = build_picker(vid, args.profile, args.language)
     print(f"완료: {picker}")
-    print("자동 선택 없음: picker.html에서 선택하거나 clipnote.autopick을 실행하세요.")
+    print("자동 선택 없음: picker.html에서 선택하거나 stepkeeper.autopick을 실행하세요.")
 
 
 if __name__ == "__main__":

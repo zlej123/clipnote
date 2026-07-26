@@ -2,8 +2,8 @@
 """Feedback log for AI frame picks.
 
 Usage:
-    python -m clipnote.feedback add path/to/semantic-evaluation.json
-    python -m clipnote.feedback summary
+    python -m stepkeeper.feedback add path/to/semantic-evaluation.json
+    python -m stepkeeper.feedback summary
 
 Records land in <data-root>/feedback/feedback.jsonl. Each record compares the
 AI pick with the human's final choice, so accuracy is measurable over time and

@@ -133,8 +133,8 @@ def export_goodnotes(data, rendered: Path, destination: Path,
     font_name = "Helvetica"
     if font:
         try:
-            pdfmetrics.registerFont(TTFont("ClipnoteFont", str(font)))
-            font_name = "ClipnoteFont"
+            pdfmetrics.registerFont(TTFont("StepkeeperFont", str(font)))
+            font_name = "StepkeeperFont"
         except Exception as error:
             # Some system TTCs (e.g. AppleSDGothicNeo) use outlines reportlab
             # cannot parse; fall back to the built-in Latin font.
@@ -142,13 +142,13 @@ def export_goodnotes(data, rendered: Path, destination: Path,
 
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle(
-        "ClipnoteTitle", parent=styles["Title"], fontName=font_name,
+        "StepkeeperTitle", parent=styles["Title"], fontName=font_name,
         fontSize=20, leading=26, alignment=TA_CENTER, spaceAfter=12)
     heading_style = ParagraphStyle(
-        "ClipnoteHeading", parent=styles["Heading2"], fontName=font_name,
+        "StepkeeperHeading", parent=styles["Heading2"], fontName=font_name,
         fontSize=14, leading=19, textColor=colors.HexColor("#222222"))
     body_style = ParagraphStyle(
-        "ClipnoteBody", parent=styles["BodyText"], fontName=font_name,
+        "StepkeeperBody", parent=styles["BodyText"], fontName=font_name,
         fontSize=10.5, leading=16, spaceAfter=7)
 
     story = [
@@ -303,7 +303,7 @@ def export_notion(data: dict, rendered: Path, video_id: str,
     blocks = build_notion_blocks(data, video_id, image_ids)
     page = notion_request("/pages", token, payload={
         "parent": {"page_id": parent_page_id},
-        "properties": {"title": {"title": _rich(data.get("title", "clipnote"))}},
+        "properties": {"title": {"title": _rich(data.get("title", "stepkeeper"))}},
         "children": blocks[:100],
     })
     for start in range(100, len(blocks), 100):

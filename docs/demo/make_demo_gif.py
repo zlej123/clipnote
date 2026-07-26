@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""clipnote 데모 GIF 생성 — 실제 산출물(docs/demo/*.jpg, README 문안)만 사용한 슬라이드 조립.
+"""stepkeeper 데모 GIF 생성 — 실제 산출물(docs/demo/*.jpg, README 문안)만 사용한 슬라이드 조립.
 
 각 슬라이드를 헤드리스 크롬으로 캡처한 뒤 ffmpeg(팔레트 2-pass)로 GIF를 만든다.
 """
@@ -55,7 +55,7 @@ h1 .dim { color: #8a8078; font-weight: 500; }
 SLIDES = [
     # (본문 HTML, 이 슬라이드가 화면에 머무는 프레임 수 — 1프레임 = 0.5초)
     ("""<div class="slide">
-      <div class="kicker">clipnote</div>
+      <div class="kicker">stepkeeper</div>
       <h1>Turn videos into documents,<br><span class="dim">recipes, and user manuals.</span></h1>
       <div class="sub">A how-to video goes in. A follow-along document comes out —<br>with the real frames at the moments words can't carry.</div>
     </div>""", 5),
@@ -65,7 +65,7 @@ SLIDES = [
       <div class="ask">Bite-sized… how big, exactly?</div>
     </div>""", 4),
     (f"""<div class="slide">
-      <div class="kicker">clipnote's answer</div>
+      <div class="kicker">stepkeeper's answer</div>
       <div class="row">
         <img class="frame" src="{SIZE_IMG}">
         <div class="answer">
@@ -80,7 +80,7 @@ SLIDES = [
       <div class="ask">Reduced to what, though?</div>
     </div>""", 4),
     (f"""<div class="slide">
-      <div class="kicker">clipnote's answer</div>
+      <div class="kicker">stepkeeper's answer</div>
       <div class="row">
         <img class="frame" src="{STATE_IMG}">
         <div class="answer">

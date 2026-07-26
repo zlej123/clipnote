@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "clipnote"
+name = "stepkeeper"
 version = "0.2.0"
 description = "Turn how-to YouTube videos into follow-along documents with visual guides at ambiguous moments."
 readme = "README.md"
@@ -15,14 +15,14 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/zlej123/clipnote"
+Homepage = "https://github.com/zlej123/stepkeeper"
 
 [project.scripts]
-clipnote = "clipnote.pipeline:main"
-clipnote-analyze = "clipnote.analyze:main"
-clipnote-capture = "clipnote.capture:main"
-clipnote-render = "clipnote.render:main"
-clipnote-export = "clipnote.export:main"
+stepkeeper = "stepkeeper.pipeline:main"
+stepkeeper-analyze = "stepkeeper.analyze:main"
+stepkeeper-capture = "stepkeeper.capture:main"
+stepkeeper-render = "stepkeeper.render:main"
+stepkeeper-export = "stepkeeper.export:main"
 
 [tool.setuptools]
 package-dir = { "" = "src" }
@@ -32,4 +32,4 @@ include-package-data = true
 where = ["src"]
 
 [tool.setuptools.package-data]
-clipnote = ["skill-core/**/*"]
+stepkeeper = ["skill-core/**/*"]

@@ -10,7 +10,7 @@ import numpy as np
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "src"))
-from clipnote.common import analysis_file, frames_dir  # noqa: E402
+from stepkeeper.common import analysis_file, frames_dir  # noqa: E402
 
 SLOTS = ("before", "center", "after")
 WIDTH, HEIGHT = 320, 180

@@ -8,8 +8,8 @@ VIDEO_ID = re.compile(r"(?:v=|youtu\.be/|shorts/)([\w-]{11})")
 
 
 def data_root() -> Path:
-    """Artifact root (work/, output/, exports/). Env CLIPNOTE_DATA or cwd."""
-    return Path(os.environ.get("CLIPNOTE_DATA", Path.cwd()))
+    """Artifact root (work/, output/, exports/). Env STEPKEEPER_DATA or cwd."""
+    return Path(os.environ.get("STEPKEEPER_DATA", Path.cwd()))
 
 
 def validate_token(value: str, label: str) -> str:

@@ -24,8 +24,8 @@ HERE = Path(__file__).parent
 ROOT = HERE.parent
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(HERE))
-from clipnote.common import analysis_file  # noqa: E402
-from clipnote.contract import validate  # noqa: E402
+from stepkeeper.common import analysis_file  # noqa: E402
+from stepkeeper.contract import validate  # noqa: E402
 
 
 def video_id(url: str) -> str:
@@ -41,7 +41,7 @@ def hms(seconds) -> str:
 
 def run_analyze(url: str, profile: str, language: str,
                 model: str, force: bool) -> int:
-    command = [sys.executable, "-m", "clipnote.analyze", url,
+    command = [sys.executable, "-m", "stepkeeper.analyze", url,
                "--profile", profile, "--language", language,
                "--model", model]
     if force:
@@ -82,7 +82,7 @@ def main():
     dimensions = fixtures.get("_dimensions", {})
     coverage = defaultdict(Counter)
 
-    lines = ["# clipnote 배치 검증 리포트", ""]
+    lines = ["# stepkeeper 배치 검증 리포트", ""]
     total = passed = failed = skipped = 0
     semantic_reviewed = semantic_hits = 0
     quota_blocked = False
@@ -195,7 +195,7 @@ def main():
 
             if args.capture and not errors and guides:
                 subprocess.run([
-                    sys.executable, "-m", "clipnote.capture", vid,
+                    sys.executable, "-m", "stepkeeper.capture", vid,
                     "--profile", profile, "--language", language,
                 ], cwd=str(ROOT))
         if domain_reviewed:

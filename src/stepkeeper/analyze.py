@@ -170,7 +170,7 @@ def main():
     ap.add_argument("--profile", default="generic", help="분석 프로파일 (generic|recipe|...)")
     ap.add_argument(
         "--language",
-        default=os.environ.get("CLIPNOTE_LANGUAGE", "ko"),
+        default=os.environ.get("STEPKEEPER_LANGUAGE", "ko"),
         help="사용자 프로파일 출력 언어(BCP-47, 예: ko, en, ja)")
     ap.add_argument("--max-guides", type=int, default=5, help="최대 시각 가이드 수")
     ap.add_argument("--force", action="store_true", help="캐시 무시하고 재분석")

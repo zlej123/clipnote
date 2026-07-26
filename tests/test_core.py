@@ -10,11 +10,11 @@ from unittest.mock import patch
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from clipnote import analyze, capture
-from clipnote import export as exporter
-from clipnote import render as renderer
-from clipnote.contract import validate
-from clipnote.common import analysis_file, frames_dir, hms, output_dir, video_id
+from stepkeeper import analyze, capture
+from stepkeeper import export as exporter
+from stepkeeper import render as renderer
+from stepkeeper.contract import validate
+from stepkeeper.common import analysis_file, frames_dir, hms, output_dir, video_id
 
 
 class FixtureCorpusTests(unittest.TestCase):
@@ -234,9 +234,9 @@ class ExportTests(unittest.TestCase):
 
 class AutoPickTests(unittest.TestCase):
     def _seed(self, root: Path):
-        os.environ["CLIPNOTE_DATA"] = str(root)
+        os.environ["STEPKEEPER_DATA"] = str(root)
         data = CoreContractTests().valid_data()
-        from clipnote.common import analysis_file, frames_dir
+        from stepkeeper.common import analysis_file, frames_dir
         source = analysis_file(root, "vid00000000", "generic", "ko")
         source.parent.mkdir(parents=True, exist_ok=True)
         source.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
@@ -247,10 +247,10 @@ class AutoPickTests(unittest.TestCase):
         return frames
 
     def tearDown(self):
-        os.environ.pop("CLIPNOTE_DATA", None)
+        os.environ.pop("STEPKEEPER_DATA", None)
 
     def test_auto_pick_writes_picks_and_meta(self):
-        from clipnote import autopick
+        from stepkeeper import autopick
         with tempfile.TemporaryDirectory() as temp:
             frames = self._seed(Path(temp))
             with patch.object(autopick, "generate_json", return_value={
@@ -264,7 +264,7 @@ class AutoPickTests(unittest.TestCase):
             self.assertEqual("auto", meta["source"])
 
     def test_missing_guides_fall_back_to_none(self):
-        from clipnote import autopick
+        from stepkeeper import autopick
         with tempfile.TemporaryDirectory() as temp:
             self._seed(Path(temp))
             with patch.object(autopick, "generate_json",
@@ -275,12 +275,12 @@ class AutoPickTests(unittest.TestCase):
 
 class FeedbackTests(unittest.TestCase):
     def tearDown(self):
-        os.environ.pop("CLIPNOTE_DATA", None)
+        os.environ.pop("STEPKEEPER_DATA", None)
 
     def test_add_and_summary(self):
-        from clipnote import feedback
+        from stepkeeper import feedback
         with tempfile.TemporaryDirectory() as temp:
-            os.environ["CLIPNOTE_DATA"] = temp
+            os.environ["STEPKEEPER_DATA"] = temp
             evaluation = Path(temp) / "semantic-evaluation.json"
             evaluation.write_text(json.dumps({
                 "video_id": "v", "profile": "generic", "language": "ko",

@@ -1,16 +1,16 @@
-# clipnote
+# stepkeeper
 
 Turns videos into documents, recipes, and user manuals.
 
-Instructions like *"cut it bite-sized"* or *"simmer until the sauce reduces"* don't mean much as text. clipnote finds the frame where that state is actually visible and embeds it next to the step. It works across domains — cooking, repair, crafts, beauty, fitness, software — and exports to Notion, Obsidian, and Goodnotes.
+Instructions like *"cut it bite-sized"* or *"simmer until the sauce reduces"* don't mean much as text. stepkeeper finds the frame where that state is actually visible and embeds it next to the step. It works across domains — cooking, repair, crafts, beauty, fitness, software — and exports to Notion, Obsidian, and Goodnotes.
 
 Gemini analyzes the video itself (visuals and audio), so it works on videos without captions, and when the narration runs ahead of the action.
 
 This repo is the Python core and the language-neutral `skill-core/` assets. If you just want to use
-clipnote, the clients built on it are [clipnote-apple](https://github.com/zlej123/clipnote-apple)
-(iOS/iPadOS/macOS) and [clipnote-extension](https://github.com/zlej123/clipnote-extension) (Chrome).
+stepkeeper, the clients built on it are [stepkeeper-apple](https://github.com/zlej123/stepkeeper-apple)
+(iOS/iPadOS/macOS) and [stepkeeper-extension](https://github.com/zlej123/stepkeeper-extension) (Chrome).
 
-![clipnote demo — a spoken "bite-sized" becomes the frame that shows it](docs/demo/demo.gif)
+![stepkeeper demo — a spoken "bite-sized" becomes the frame that shows it](docs/demo/demo.gif)
 
 ## Example
 
@@ -31,7 +31,7 @@ And *"cut it bite-sized"*:
 ## Install
 
 ```bash
-pip install -e .                   # installs deps + the `clipnote` command
+pip install -e .                   # installs deps + the `stepkeeper` command
 # system dependency: ffmpeg (on PATH; not needed for --links-only)
 export GEMINI_API_KEY=...          # Google AI Studio key
 ```
@@ -42,15 +42,15 @@ One command runs the whole pipeline.
 
 ```bash
 # 1) Fully automatic, links instead of screenshots (no ffmpeg)
-clipnote "https://www.youtube.com/watch?v=..." --profile generic --language en --links-only
+stepkeeper "https://www.youtube.com/watch?v=..." --profile generic --language en --links-only
 
 # 2) Fully automatic with screenshots: AI picks the frames, you review after
-clipnote "https://www.youtube.com/watch?v=..." --profile recipe --language en --auto-pick --export goodnotes
+stepkeeper "https://www.youtube.com/watch?v=..." --profile recipe --language en --auto-pick --export goodnotes
 
 # 3) Manual frame selection
-clipnote "https://www.youtube.com/watch?v=..." --profile recipe --language en
+stepkeeper "https://www.youtube.com/watch?v=..." --profile recipe --language en
 #   → open the printed picker.html, pick one candidate per guide, save picks.json
-clipnote "https://www.youtube.com/watch?v=..." --profile recipe --language en \
+stepkeeper "https://www.youtube.com/watch?v=..." --profile recipe --language en \
     --picks work/frames/<id>/recipe.en/picks.json --export goodnotes
 ```
 
@@ -61,10 +61,10 @@ timestamp link when none fits). The regenerated picker.html shows the AI picks p
 correct any, download the evaluation file and record it:
 
 ```bash
-python -m clipnote.feedback add semantic-evaluation.json   # accumulates accuracy + disagreement patterns
+python -m stepkeeper.feedback add semantic-evaluation.json   # accumulates accuracy + disagreement patterns
 ```
 
-Artifacts are written under the current directory (override with `CLIPNOTE_DATA`).
+Artifacts are written under the current directory (override with `STEPKEEPER_DATA`).
 
 ## Note app export
 
@@ -75,12 +75,12 @@ Artifacts are written under the current directory (override with `CLIPNOTE_DATA`
 | Notion | direct upload via the Notion API (your integration token) | done |
 
 ```bash
-clipnote-export <id> --profile recipe --language en --target obsidian --destination /path/to/vault
-clipnote-export <id> --profile recipe --language en --target goodnotes
-NOTION_TOKEN=... clipnote-export <id> --profile recipe --language en --target notion --parent <page-id>
+stepkeeper-export <id> --profile recipe --language en --target obsidian --destination /path/to/vault
+stepkeeper-export <id> --profile recipe --language en --target goodnotes
+NOTION_TOKEN=... stepkeeper-export <id> --profile recipe --language en --target notion --parent <page-id>
 ```
 
-## Reusing clipnote
+## Reusing stepkeeper
 
 Two reuse boundaries:
 
@@ -89,22 +89,22 @@ Two reuse boundaries:
 
 | Consumer | How |
 |----------|-----|
-| REST API server | wraps the modules — see [clipnote-server](https://github.com/zlej123/clipnote-server) |
-| Desktop app / Python tools / agent skills | import directly (see `skills/clipnote/SKILL.md`) |
-| iOS/iPadOS/macOS app | [clipnote-apple](https://github.com/zlej123/clipnote-apple) — bundles `skill-core/` and calls Gemini directly (no server), with the Python renderer ported to Swift |
-| Browser | [clipnote-extension](https://github.com/zlej123/clipnote-extension) — captures frames from the YouTube player itself |
+| REST API server | wraps the modules — see [stepkeeper-server](https://github.com/zlej123/stepkeeper-server) |
+| Desktop app / Python tools / agent skills | import directly (see `skills/stepkeeper/SKILL.md`) |
+| iOS/iPadOS/macOS app | [stepkeeper-apple](https://github.com/zlej123/stepkeeper-apple) — bundles `skill-core/` and calls Gemini directly (no server), with the Python renderer ported to Swift |
+| Browser | [stepkeeper-extension](https://github.com/zlej123/stepkeeper-extension) — captures frames from the YouTube player itself |
 
 Both clients capture frames on their own side (WKWebView / canvas), so neither needs ffmpeg or a
-download step, and the server stays optional. clipnote-apple is the fullest reuse of `skill-core/`:
+download step, and the server stays optional. stepkeeper-apple is the fullest reuse of `skill-core/`:
 its Swift port of the mustache renderer is pinned to this repo's `render.py` output by golden tests,
 so a template change here stays reproducible there.
 
 ## Use as an agent skill
 
-clipnote ships as an agent skill (`skills/clipnote/SKILL.md`).
+stepkeeper ships as an agent skill (`skills/stepkeeper/SKILL.md`).
 
-- **Claude Code**: `/plugin marketplace add zlej123/clipnote`, then `/plugin install clipnote@clipnote`.
-- **Manual**: copy `skills/clipnote/` into your skills directory (`~/.claude/skills/` or `~/.gjc/skills/`).
+- **Claude Code**: `/plugin marketplace add zlej123/stepkeeper`, then `/plugin install stepkeeper@stepkeeper`.
+- **Manual**: copy `skills/stepkeeper/` into your skills directory (`~/.claude/skills/` or `~/.gjc/skills/`).
 
 The skill clones this repo on first use and asks for a Gemini API key if none is set.
 
@@ -118,7 +118,7 @@ The demo GIF is assembled from real pipeline output by `docs/demo/make_demo_gif.
 
 ## Adding a domain profile
 
-Drop three files into `src/clipnote/skill-core/profiles/<name>/`: `prompt.md` (containing `{{RULES}}`), `schema.json`, `template.md`. No pipeline changes needed.
+Drop three files into `src/stepkeeper/skill-core/profiles/<name>/`: `prompt.md` (containing `{{RULES}}`), `schema.json`, `template.md`. No pipeline changes needed.
 
 ## Tests
 
