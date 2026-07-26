@@ -21,8 +21,17 @@ sys.stdout.reconfigure(encoding="utf-8")
 PKG = Path(__file__).parent
 
 
-def load_template(profile: str) -> str:
-    p = PKG / "skill-core" / "profiles" / profile / "template.md"
+def load_template(profile: str, language: str = "") -> str:
+    """template.<language>.md가 있으면 그것을, 없으면 template.md(영어 기본)를 쓴다.
+
+    문서 뼈대(머리말·라벨·출처 줄)는 템플릿에 들어 있으므로, 언어별 파일이 없는 언어는
+    영어 뼈대 + 해당 언어 본문이 된다 (한국어처럼 뼈대까지 번역하려면 template.ko.md 추가).
+    """
+    profile_dir = PKG / "skill-core" / "profiles" / profile
+    localized = profile_dir / f"template.{language}.md" if language else None
+    if localized is not None and localized.exists():
+        return localized.read_text(encoding="utf-8")
+    p = profile_dir / "template.md"
     if not p.exists():
         sys.exit(f"알 수 없는 프로파일: {profile} ({p} 없음)")
     return p.read_text(encoding="utf-8")
@@ -212,7 +221,7 @@ def main():
         stale.unlink()
 
     profile = data["_profile"]
-    template = load_template(profile)
+    template = load_template(profile, args.language)
     # 템플릿 프론트매터(주석 + '---') 제거: 첫 '---' 줄 이후만 렌더
     body = template
     if "\n---\n" in template:

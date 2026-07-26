@@ -152,6 +152,24 @@ class CoreContractTests(unittest.TestCase):
         self.assertNotIn("{OUTPUT_LANGUAGE}", prompt)
         self.assertNotIn("{MAX_VISUAL_GUIDES}", prompt)
 
+    def test_template_follows_output_language(self):
+        """문서 뼈대(라벨·출처 줄)도 --language를 따라야 한다.
+
+        회귀 방지: 예전에는 template.md가 한국어 하드코딩이라 --language en 문서의
+        본문만 영어이고 '준비 재료'·'조리 순서'·'기준:'·'출처:'는 한국어로 남았다.
+        """
+        for profile in ("recipe", "generic"):
+            english = renderer.load_template(profile, "en")
+            korean = renderer.load_template(profile, "ko")
+            self.assertIn("**■ Steps**", english)
+            self.assertIn("kept with stepkeeper", english)
+            self.assertNotIn("기준:", english)
+            self.assertIn("기준:", korean)
+            self.assertIn("stepkeeper로 생성", korean)
+            # 번역본이 없는 언어는 영어 기본 뼈대로 떨어진다 (한국어로 새지 않는다)
+            self.assertEqual(english, renderer.load_template(profile, "ja"))
+            self.assertEqual(english, renderer.load_template(profile))
+
     def test_artifact_paths_are_variant_aware(self):
         self.assertIn("generic.ko.json", str(analysis_file(ROOT, "abc", "generic", "ko")))
         self.assertNotEqual(frames_dir(ROOT, "abc", "generic", "ko"),
