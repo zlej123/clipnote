@@ -10,6 +10,8 @@ This repo is the Python core and the language-neutral `skill-core/` assets. If y
 clipnote, the clients built on it are [clipnote-apple](https://github.com/zlej123/clipnote-apple)
 (iOS/iPadOS/macOS) and [clipnote-extension](https://github.com/zlej123/clipnote-extension) (Chrome).
 
+![clipnote demo — a spoken "bite-sized" becomes the frame that shows it](docs/demo/demo.gif)
+
 ## Example
 
 Generated from [this pork stir-fry video](https://youtu.be/4ioPBiTWm3M). Where the video only says *"simmer until the sauce reduces"*, the document reads:
@@ -105,6 +107,14 @@ clipnote ships as an agent skill (`skills/clipnote/SKILL.md`).
 - **Manual**: copy `skills/clipnote/` into your skills directory (`~/.claude/skills/` or `~/.gjc/skills/`).
 
 The skill clones this repo on first use and asks for a Gemini API key if none is set.
+
+What the skill does once installed: you paste a how-to URL, it runs analyze → capture → pick →
+render, and hands back a document. The agent can pick the frames itself by reading the three
+candidates per guide, or hand you `picker.html` to choose. Ambiguous instructions are the whole
+point — see the demo above.
+
+The demo GIF is assembled from real pipeline output by `docs/demo/make_demo_gif.py`
+(headless Chrome + ffmpeg); regenerate it after changing the frames or the wording.
 
 ## Adding a domain profile
 

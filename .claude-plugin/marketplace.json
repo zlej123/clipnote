@@ -1,11 +1,16 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "clipnote",
   "owner": { "name": "zlej123", "url": "https://github.com/zlej123" },
   "plugins": [
     {
       "name": "clipnote",
       "source": "./",
-      "description": "Turn how-to YouTube videos into follow-along documents with real video frames at the ambiguous moments."
+      "description": "Turn how-to YouTube videos into follow-along documents with real video frames at the ambiguous moments. Gemini analyzes the video itself, so vague instructions like \"cut it bite-sized\" get the frame that shows what that actually looks like. Exports to Markdown, Notion, Obsidian, and Goodnotes.",
+      "author": { "name": "zlej123", "url": "https://github.com/zlej123" },
+      "category": "productivity",
+      "homepage": "https://github.com/zlej123/clipnote",
+      "keywords": ["youtube", "gemini", "video-to-document", "notion", "obsidian", "recipe"]
     }
   ]
 }
