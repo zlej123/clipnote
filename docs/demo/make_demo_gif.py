@@ -20,8 +20,10 @@ def data_uri(path):
     return "data:image/jpeg;base64," + base64.b64encode(path.read_bytes()).decode()
 
 
-SIZE_IMG = data_uri(CORE / "docs/demo/demo-size.jpg")
-STATE_IMG = data_uri(CORE / "docs/demo/demo-state.jpg")
+# 실제 파이프라인 산출 프레임 (stepkeeper <url> --auto-pick 로 생성된 것을 그대로 복사)
+CRUST_IMG = data_uri(CORE / "docs/demo/steak-crust.jpg")        # kbpIYAnt-7k vg-2 (color)
+DONENESS_IMG = data_uri(CORE / "docs/demo/steak-doneness.jpg")  # kbpIYAnt-7k vg-3 (state)
+SANDING_IMG = data_uri(CORE / "docs/demo/sanding-grain.jpg")    # BUzQM5F0yJ4 vg-2 (action)
 
 CSS = """
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -56,46 +58,56 @@ SLIDES = [
     # (본문 HTML, 이 슬라이드가 화면에 머무는 프레임 수 — 1프레임 = 0.5초)
     ("""<div class="slide">
       <div class="kicker">stepkeeper</div>
-      <h1>Turn videos into documents,<br><span class="dim">recipes, and user manuals.</span></h1>
-      <div class="sub">A how-to video goes in. A follow-along document comes out —<br>with the real frames at the moments words can't carry.</div>
+      <h1>The video gets deleted.<br><span class="dim">The steps stay yours.</span></h1>
+      <div class="sub">A how-to video goes in. A document you keep comes out —<br>with the real frames at the moments words can't carry.</div>
     </div>""", 5),
     ("""<div class="slide">
       <div class="kicker">the problem</div>
-      <div class="quote">"Cut it <em>bite-sized</em>."</div>
-      <div class="ask">Bite-sized… how big, exactly?</div>
+      <div class="quote">"Sear it until you get a<br><em>golden brown crust</em>."</div>
+      <div class="ask">Brown… how brown, exactly?</div>
     </div>""", 4),
     (f"""<div class="slide">
       <div class="kicker">stepkeeper's answer</div>
       <div class="row">
-        <img class="frame" src="{SIZE_IMG}">
+        <img class="frame" src="{CRUST_IMG}">
         <div class="answer">
-          <div class="label">💡 "Bite-sized" means</div>
-          <div class="text">roughly 3–4 cm cubes</div>
+          <div class="label">💡 "Golden brown crust" means</div>
+          <div class="text">flip when the crust looks like this</div>
         </div>
       </div>
     </div>""", 5),
     ("""<div class="slide">
       <div class="kicker">the problem</div>
-      <div class="quote">"Simmer until the sauce <em>reduces</em>."</div>
-      <div class="ask">Reduced to what, though?</div>
+      <div class="quote">"Pull it at <em>medium-rare</em>."</div>
+      <div class="ask">Everyone argues about this one.</div>
     </div>""", 4),
     (f"""<div class="slide">
       <div class="kicker">stepkeeper's answer</div>
       <div class="row">
-        <img class="frame" src="{STATE_IMG}">
+        <img class="frame" src="{DONENESS_IMG}">
         <div class="answer">
-          <div class="label">💡 "Reduced" means</div>
-          <div class="text">almost no liquid left, sauce clinging with a glossy sheen</div>
+          <div class="label">💡 "Medium-rare" means</div>
+          <div class="text">120–125°F inside — this much pink</div>
         </div>
       </div>
     </div>""", 5),
     (f"""<div class="slide">
-      <div class="kicker">the output</div>
+      <div class="kicker">not just recipes</div>
+      <div class="row">
+        <img class="frame" src="{SANDING_IMG}">
+        <div class="answer">
+          <div class="label">💡 "Sand it smooth" means</div>
+          <div class="text">220-grit by hand, strictly along the grain</div>
+        </div>
+      </div>
+    </div>""", 5),
+    (f"""<div class="slide">
+      <div class="kicker">what you keep</div>
       <div class="doc">
-        <div class="h">2. Simmer the pork in the sauce</div>
-        <div class="li">• Add 1/2 cup water, 1T brown sugar, 1T syrup; once dissolved, add the pork.</div>
-        <div class="guide">💡 "Reduced" means: almost no liquid left on the pan bottom.</div>
-        <img src="{STATE_IMG}">
+        <div class="h">5. Rest and slice the steak</div>
+        <div class="li">• Remove the steak when it reaches medium-rare, rest 5 minutes, then slice.</div>
+        <div class="guide">💡 "Medium-rare" means: 120–125°F inside, juicy and pink.</div>
+        <img src="{DONENESS_IMG}">
       </div>
       <div class="exports"><div class="chip">Markdown</div><div class="chip">Notion</div><div class="chip">Obsidian</div><div class="chip">Goodnotes</div></div>
     </div>""", 7),
