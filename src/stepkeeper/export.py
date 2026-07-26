@@ -23,6 +23,37 @@ from .common import analysis_file, data_root, output_dir, variant_key
 sys.stdout.reconfigure(encoding="utf-8")
 
 
+# 문서 산출물(Notion·PDF)의 절 제목·라벨. render.py의 template[.<lang>].md와 같은 규칙 —
+# 번역본이 없는 언어는 영어로 떨어진다(한국어로 새지 않는다).
+DOC_STRINGS = {
+    "en": {
+        "source_link": "Watch on YouTube",
+        "materials": "What you need",
+        "ingredients": "Ingredients",
+        "no_materials": "Nothing to prepare",
+        "steps": "Steps",
+        "guide_prefix": "What '{phrase}' looks like:",
+        "guide_label": "Visual guide: {phrase}",
+        "see_at": "▶ See it in the video at {time}",
+    },
+    "ko": {
+        "source_link": "YouTube 원본",
+        "materials": "준비물",
+        "ingredients": "준비 재료",
+        "no_materials": "별도 준비물 없음",
+        "steps": "순서",
+        "guide_prefix": "'{phrase}' 기준:",
+        "guide_label": "시각 가이드: {phrase}",
+        "see_at": "▶ 영상 {time}에서 직접 확인",
+    },
+}
+
+
+def doc_strings(language: str = "") -> dict:
+    """출력 언어에 맞는 문서 라벨. 미지원 언어는 영어."""
+    return DOC_STRINGS.get(language or "", DOC_STRINGS["en"])
+
+
 def safe_name(value: str) -> str:
     name = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "-", value).strip(" .-")
     return name[:80] or "document"
@@ -151,13 +182,15 @@ def export_goodnotes(data, rendered: Path, destination: Path,
         "StepkeeperBody", parent=styles["BodyText"], fontName=font_name,
         fontSize=10.5, leading=16, spaceAfter=7)
 
+    labels = doc_strings(data.get("_output_language", ""))
+    is_recipe = data.get("_profile") == "recipe"
     story = [
         Paragraph(escape(data.get("title", "")), title_style),
         Paragraph(escape(data.get("summary", "")), body_style),
-        Paragraph(f'<link href="https://youtu.be/{video_id}">YouTube 원본</link>',
+        Paragraph(f'<link href="https://youtu.be/{video_id}">{labels["source_link"]}</link>',
                   body_style),
         Spacer(1, 4 * mm),
-        Paragraph("준비물", heading_style),
+        Paragraph(labels["ingredients"] if is_recipe else labels["materials"], heading_style),
     ]
     materials = data.get("materials", [])
     if materials:
@@ -166,20 +199,20 @@ def export_goodnotes(data, rendered: Path, destination: Path,
                 f"• {escape(material.get('name', ''))} "
                 f"{escape(material.get('amount', ''))}", body_style))
     else:
-        story.append(Paragraph("별도 준비물 없음", body_style))
+        story.append(Paragraph(labels["no_materials"], body_style))
 
     guides_by_step = {}
     for guide in data.get("visual_guides", []):
         guides_by_step.setdefault(guide.get("step_id"), []).append(guide)
 
-    story.extend([Spacer(1, 4 * mm), Paragraph("순서", heading_style)])
+    story.extend([Spacer(1, 4 * mm), Paragraph(labels["steps"], heading_style)])
     for step in data.get("steps", []):
         story.append(Paragraph(
             f"{step['id']}. {escape(step.get('summary', ''))}", heading_style))
         story.append(Paragraph(escape(step.get("detail", "")), body_style))
         for guide in guides_by_step.get(step.get("id"), []):
             story.append(Paragraph(
-                f"시각 가이드: {escape(guide.get('phrase', ''))}<br/>"
+                f"{labels['guide_label'].format(phrase=escape(guide.get('phrase', '')))}<br/>"
                 f"{escape(guide.get('guide_text', ''))}", body_style))
             matches = list((rendered / "images").glob(f"{guide['id']}_*.jpg"))
             if matches:
@@ -254,18 +287,24 @@ def _rich(text: str, link: str = None) -> list:
 
 
 def build_notion_blocks(data: dict, video_id: str, image_ids: dict) -> list:
-    """Analysis JSON -> Notion block list. image_ids: guide_id -> file_upload id."""
+    """Analysis JSON -> Notion block list. image_ids: guide_id -> file_upload id.
+
+    절 제목·라벨은 data["_output_language"]를 따른다 (문서 뼈대와 같은 규칙).
+    """
+    labels = doc_strings(data.get("_output_language", ""))
     blocks = []
     if data.get("summary"):
         blocks.append({"type": "paragraph",
                        "paragraph": {"rich_text": _rich(data["summary"])}})
     blocks.append({"type": "paragraph", "paragraph": {"rich_text": _rich(
-        "YouTube 원본", f"https://youtu.be/{video_id}")}})
+        labels["source_link"], f"https://youtu.be/{video_id}")}})
 
     materials = data.get("materials") or []
     if materials:
         blocks.append({"type": "heading_2",
-                       "heading_2": {"rich_text": _rich("준비물")}})
+                       "heading_2": {"rich_text": _rich(
+                           labels["ingredients"] if data.get("_profile") == "recipe"
+                           else labels["materials"])}})
         for material in materials:
             blocks.append({"type": "bulleted_list_item", "bulleted_list_item": {
                 "rich_text": _rich(f"{material.get('name', '')} {material.get('amount', '')}")}})
@@ -274,13 +313,15 @@ def build_notion_blocks(data: dict, video_id: str, image_ids: dict) -> list:
     for guide in data.get("visual_guides", []):
         guides_by_step.setdefault(guide.get("step_id"), []).append(guide)
 
-    blocks.append({"type": "heading_2", "heading_2": {"rich_text": _rich("순서")}})
+    blocks.append({"type": "heading_2",
+                   "heading_2": {"rich_text": _rich(labels["steps"])}})
     for step in data.get("steps", []):
         blocks.append({"type": "numbered_list_item", "numbered_list_item": {
             "rich_text": _rich(f"{step.get('summary', '')} — {step.get('detail', '')}")}})
         for guide in guides_by_step.get(step.get("id"), []):
             blocks.append({"type": "quote", "quote": {"rich_text": _rich(
-                f"💡 '{guide.get('phrase', '')}' 기준: {guide.get('guide_text', '')}")}})
+                "💡 " + labels["guide_prefix"].format(phrase=guide.get("phrase", ""))
+                + f" {guide.get('guide_text', '')}")}})
             timestamp = guide.get("best_visual_timestamp")
             if guide.get("id") in image_ids:
                 blocks.append({"type": "image", "image": {
@@ -288,7 +329,8 @@ def build_notion_blocks(data: dict, video_id: str, image_ids: dict) -> list:
                     "file_upload": {"id": image_ids[guide["id"]]}}})
             elif timestamp is not None:
                 blocks.append({"type": "paragraph", "paragraph": {"rich_text": _rich(
-                    f"▶ 영상 {timestamp // 60}:{timestamp % 60:02d}에서 직접 확인",
+                    labels["see_at"].format(
+                        time=f"{timestamp // 60}:{timestamp % 60:02d}"),
                     f"https://youtu.be/{video_id}?t={timestamp}")}})
     return blocks
 

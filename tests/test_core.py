@@ -333,6 +333,36 @@ class NotionTests(unittest.TestCase):
         self.assertTrue(any("t=9" in block["paragraph"]["rich_text"][0]["text"]["link"]["url"]
                             for block in links))
 
+    def test_notion_blocks_follow_output_language(self):
+        """Notion 절 제목도 --language를 따라야 한다 (문서 뼈대와 같은 규칙).
+
+        회귀 방지: 예전에는 '준비물'·'순서'·'기준:'·'YouTube 원본'이 하드코딩이라
+        영어 문서를 Notion으로 보내면 한국어 제목이 붙었다.
+        """
+        def headings(language, profile="generic"):
+            data = CoreContractTests().valid_data()
+            data["_output_language"] = language
+            data["_profile"] = profile
+            blocks = exporter.build_notion_blocks(data, "vid00000000", {})
+            return [b["heading_2"]["rich_text"][0]["text"]["content"]
+                    for b in blocks if b["type"] == "heading_2"]
+
+        self.assertIn("Steps", headings("en"))
+        self.assertIn("What you need", headings("en"))
+        self.assertIn("Ingredients", headings("en", profile="recipe"))
+        self.assertIn("순서", headings("ko"))
+        self.assertIn("준비물", headings("ko"))
+        self.assertIn("준비 재료", headings("ko", profile="recipe"))
+        self.assertIn("Steps", headings("ja"))          # 번역본 없는 언어는 영어
+
+        data = CoreContractTests().valid_data()
+        data["_output_language"] = "en"
+        blocks = exporter.build_notion_blocks(data, "vid00000000", {})
+        text = json.dumps(blocks, ensure_ascii=False)
+        self.assertIn("Watch on YouTube", text)
+        self.assertIn("What '", text)                   # 가이드 접두사
+        self.assertNotIn("기준:", text)
+
     def test_export_notion_uploads_and_creates_page(self):
         data = CoreContractTests().valid_data()
         calls = []
