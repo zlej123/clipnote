@@ -46,6 +46,16 @@ DOC_STRINGS = {
         "guide_label": "시각 가이드: {phrase}",
         "see_at": "▶ 영상 {time}에서 직접 확인",
     },
+    "ja": {
+        "source_link": "YouTube で見る",
+        "materials": "用意するもの",
+        "ingredients": "材料",
+        "no_materials": "特に用意するものはありません",
+        "steps": "手順",
+        "guide_prefix": "「{phrase}」とは:",
+        "guide_label": "ビジュアルガイド: {phrase}",
+        "see_at": "▶ 動画の {time} で確認",
+    },
 }
 
 

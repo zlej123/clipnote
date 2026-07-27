@@ -167,7 +167,11 @@ class CoreContractTests(unittest.TestCase):
             self.assertIn("기준:", korean)
             self.assertIn("stepkeeper로 생성", korean)
             # 번역본이 없는 언어는 영어 기본 뼈대로 떨어진다 (한국어로 새지 않는다)
-            self.assertEqual(english, renderer.load_template(profile, "ja"))
+            japanese = renderer.load_template(profile, "ja")
+            self.assertIn("**■ 手順**" if profile == "generic" else "**■ 作り方**", japanese)
+            self.assertNotIn("기준:", japanese)
+            # 번역본이 없는 언어만 영어로 떨어진다
+            self.assertEqual(english, renderer.load_template(profile, "de"))
             self.assertEqual(english, renderer.load_template(profile))
 
     def test_artifact_paths_are_variant_aware(self):
@@ -353,7 +357,8 @@ class NotionTests(unittest.TestCase):
         self.assertIn("순서", headings("ko"))
         self.assertIn("준비물", headings("ko"))
         self.assertIn("준비 재료", headings("ko", profile="recipe"))
-        self.assertIn("Steps", headings("ja"))          # 번역본 없는 언어는 영어
+        self.assertIn("手順", headings("ja"))
+        self.assertIn("Steps", headings("de"))          # 번역본 없는 언어는 영어
 
         data = CoreContractTests().valid_data()
         data["_output_language"] = "en"
