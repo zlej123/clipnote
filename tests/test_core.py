@@ -128,6 +128,12 @@ class CoreContractTests(unittest.TestCase):
         self.assertEqual(0.0, normalized["visual_guides"][0]["importance"])
         self.assertNotIn("_normalization_warnings", normalized)
 
+    def test_asset_digest_tracks_prompt_changes(self):
+        d1 = analyze.asset_digest("generic")
+        self.assertEqual(12, len(d1))
+        self.assertEqual(d1, analyze.asset_digest("generic"))       # 결정적
+        self.assertNotEqual(d1, analyze.asset_digest("recipe"))     # 프로파일별로 다름
+
     def test_normalize_stamps_contract_version(self):
         from stepkeeper.contract import CONTRACT_VERSION
         normalized = analyze.normalize(self.valid_data())

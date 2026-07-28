@@ -46,6 +46,22 @@ def load_schema(profile: str) -> dict:
     return schema
 
 
+def asset_digest(profile: str) -> str:
+    """rules.md + prompt.md + schema.json의 sha256 앞 12자리 (외부 리뷰 #6).
+
+    분석 JSON에 _asset_digest로 스탬프된다 — "이 결과가 어떤 프롬프트·스키마로
+    만들어졌는가"를 추적할 수 있어, 품질 지표를 자산 버전별로 분리할 근거가 된다.
+    """
+    import hashlib
+    digest = hashlib.sha256()
+    digest.update((PKG / "skill-core" / "engine" / "rules.md").read_bytes())
+    for name in ("prompt.md", "schema.json"):
+        path = PKG / "skill-core" / "profiles" / profile / name
+        if path.exists():
+            digest.update(path.read_bytes())
+    return digest.hexdigest()[:12]
+
+
 def load_prompt(profile: str, duration_hms: str, language: str, max_guides: int) -> str:
     p = PKG / "skill-core" / "profiles" / profile / "prompt.md"
     if not p.exists():
@@ -221,6 +237,7 @@ def main():
             print(str(error))
             sys.exit(75)
         data["_duration"] = duration
+        data["_asset_digest"] = asset_digest(args.profile)
         data["_profile"] = args.profile
         data["_output_language"] = args.language
         data["_max_visual_guides"] = args.max_guides
