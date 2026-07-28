@@ -347,18 +347,28 @@ def build_notion_blocks(data: dict, video_id: str, image_ids: dict) -> list:
 
 def export_notion(data: dict, rendered: Path, video_id: str,
                   parent_page_id: str, token: str) -> str:
+    """이미지를 올리기 **전에** 페이지를 만든다.
+
+    순서가 중요하다. 예전에는 업로드를 먼저 하고 마지막에 페이지를 만들었는데, 가장 흔한
+    실패(부모 페이지 미연결·잘못된 ID·토큰 만료)가 바로 그 마지막 단계에서 터진다. 그러면
+    올라간 이미지가 전부 어디에도 붙지 않은 채 남는다 — Notion API에는 업로드를 지우는
+    엔드포인트가 없어서 만료될 때까지 되돌릴 방법이 없다.
+
+    페이지를 먼저 만들면 그 실패는 업로드 0건으로 끝나고, 이후 단계가 실패해도 사용자에게
+    보이는 페이지가 남아 직접 지우거나 다시 시도할 수 있다.
+    """
+    page = notion_request("/pages", token, payload={
+        "parent": {"page_id": parent_page_id},
+        "properties": {"title": {"title": _rich(data.get("title", "stepkeeper"))}},
+    })
+
     image_ids = {}
     for image in sorted((rendered / "images").glob("vg-*.jpg")):
         guide_id = image.name.split("_")[0]
         image_ids[guide_id] = notion_upload_image(image, token)
 
     blocks = build_notion_blocks(data, video_id, image_ids)
-    page = notion_request("/pages", token, payload={
-        "parent": {"page_id": parent_page_id},
-        "properties": {"title": {"title": _rich(data.get("title", "stepkeeper"))}},
-        "children": blocks[:100],
-    })
-    for start in range(100, len(blocks), 100):
+    for start in range(0, len(blocks), 100):
         notion_request(f"/blocks/{page['id']}/children", token,
                        payload={"children": blocks[start:start + 100]})
     return page.get("url", page["id"])

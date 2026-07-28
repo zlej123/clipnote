@@ -25,7 +25,9 @@ class FixtureCorpusTests(unittest.TestCase):
         self.assertEqual("smoke", suite.get("suite"))
         self.assertEqual("en", suite.get("language"))
         videos = suite["videos"]
-        self.assertTrue(2 <= len(videos) <= 6)
+        # 영어 출력이 주요 배포 대상이 되면서 4편 → 10편으로 늘렸다 (도메인 6개 커버).
+        # 상한은 배치 1회 실행의 무료 티어 사용량을 감당할 수 있는 선.
+        self.assertTrue(6 <= len(videos) <= 12, len(videos))
         profiles = {video.get("profile", suite["profile"]) for video in videos}
         self.assertIn("recipe", profiles)
         self.assertIn("generic", profiles)
@@ -381,6 +383,8 @@ class NotionTests(unittest.TestCase):
             if path == "/pages":
                 self.assertEqual("parent-page", payload["parent"]["page_id"])
                 return {"id": "page-1", "url": "https://notion.so/page-1"}
+            if path.startswith("/blocks/"):
+                return {"results": []}
             raise AssertionError(path)
 
         with tempfile.TemporaryDirectory() as temp:
@@ -393,6 +397,29 @@ class NotionTests(unittest.TestCase):
         self.assertEqual("https://notion.so/page-1", url)
         self.assertIn("/file_uploads", calls)
         self.assertIn("/pages", calls)
+        # 페이지가 업로드보다 **먼저** — 가장 흔한 실패(부모 페이지 문제)가 업로드 0건으로 끝난다.
+        # Notion API에는 업로드 삭제가 없어 순서가 유일한 방어다.
+        self.assertLess(calls.index("/pages"), calls.index("/file_uploads"))
+
+    def test_export_notion_uploads_nothing_when_page_creation_fails(self):
+        """부모 페이지 오류로 페이지를 못 만들면 이미지는 한 장도 올라가지 않아야 한다."""
+        data = CoreContractTests().valid_data()
+        calls = []
+
+        def fake_request(path, token, payload=None, data=None, content_type=None):
+            calls.append(path)
+            if path == "/pages":
+                raise RuntimeError("404 parent not found")
+            raise AssertionError(f"페이지 생성 실패 후 호출됨: {path}")
+
+        with tempfile.TemporaryDirectory() as temp:
+            rendered = Path(temp)
+            (rendered / "images").mkdir()
+            (rendered / "images" / "vg-1_action.jpg").write_bytes(b"img")
+            with patch.object(exporter, "notion_request", side_effect=fake_request):
+                with self.assertRaises(RuntimeError):
+                    exporter.export_notion(data, rendered, "vid00000000", "bad-parent", "tok")
+        self.assertEqual(["/pages"], calls)
 
 
 if __name__ == "__main__":
