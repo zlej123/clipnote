@@ -63,8 +63,9 @@ def main():
         default_language = config.get("language", "ko")
         videos = config.get("videos", [])
         if suite == "smoke":
-            if not 2 <= len(videos) <= 6:
-                errors.append(f"{domain}: smoke 스위트 영상 {len(videos)}개 (계약: 2~6개)")
+            # test_core.test_en_output_smoke_suite_is_wired와 같은 범위여야 한다 (6~12)
+            if not 6 <= len(videos) <= 12:
+                errors.append(f"{domain}: smoke 스위트 영상 {len(videos)}개 (계약: 6~12개)")
         elif not 8 <= len(videos) <= 12:
             errors.append(f"{domain}: 영상 {len(videos)}개 (계약: 8~12개)")
         for index, video in enumerate(videos):

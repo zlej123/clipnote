@@ -15,7 +15,8 @@ import shutil
 import sys
 from pathlib import Path
 from .common import (
-    analysis_file, data_root, frames_dir as artifact_frames_dir, hms, output_dir)
+    UnknownProfileError, analysis_file, data_root,
+    frames_dir as artifact_frames_dir, hms, output_dir)
 sys.stdout.reconfigure(encoding="utf-8")
 
 PKG = Path(__file__).parent
@@ -33,7 +34,7 @@ def load_template(profile: str, language: str = "") -> str:
         return localized.read_text(encoding="utf-8")
     p = profile_dir / "template.md"
     if not p.exists():
-        sys.exit(f"알 수 없는 프로파일: {profile} ({p} 없음)")
+        raise UnknownProfileError(f"알 수 없는 프로파일: {profile} ({p} 없음)")
     return p.read_text(encoding="utf-8")
 
 SLOTS = ("before", "center", "after")
@@ -221,7 +222,10 @@ def main():
         stale.unlink()
 
     profile = data["_profile"]
-    template = load_template(profile, args.language)
+    try:
+        template = load_template(profile, args.language)
+    except UnknownProfileError as error:
+        sys.exit(str(error))
     # 템플릿 프론트매터(주석 + '---') 제거: 첫 '---' 줄 이후만 렌더
     body = template
     if "\n---\n" in template:

@@ -16,7 +16,7 @@ import subprocess
 import sys
 import urllib.request
 from pathlib import Path
-from .common import analysis_file, data_root, hms, video_id as parse_video_id
+from .common import UnknownProfileError, analysis_file, data_root, hms, video_id as parse_video_id
 from .contract import validate
 sys.stdout.reconfigure(encoding="utf-8")  # Windows cp949 콘솔 대응
 
@@ -39,7 +39,7 @@ class RateLimitError(RuntimeError):
 def load_schema(profile: str) -> dict:
     path = PKG / "skill-core" / "profiles" / profile / "schema.json"
     if not path.exists():
-        sys.exit(f"알 수 없는 프로파일 스키마: {profile} ({path} 없음)")
+        raise UnknownProfileError(f"알 수 없는 프로파일 스키마: {profile} ({path} 없음)")
     schema = json.loads(path.read_text(encoding="utf-8"))
     for metadata_key in ("$schema", "$comment", "title"):
         schema.pop(metadata_key, None)
@@ -49,7 +49,7 @@ def load_schema(profile: str) -> dict:
 def load_prompt(profile: str, duration_hms: str, language: str, max_guides: int) -> str:
     p = PKG / "skill-core" / "profiles" / profile / "prompt.md"
     if not p.exists():
-        sys.exit(f"알 수 없는 프로파일: {profile} ({p} 없음)")
+        raise UnknownProfileError(f"알 수 없는 프로파일: {profile} ({p} 없음)")
     return (p.read_text(encoding="utf-8")
             .replace("{{RULES}}", RULES)
             .replace("{DURATION}", duration_hms)
@@ -204,12 +204,16 @@ def main():
         key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
         if not key:
             sys.exit("GEMINI_API_KEY 환경변수가 없습니다.")
-        prompt = load_prompt(
-            args.profile, hms(duration), args.language, args.max_guides)
+        try:
+            prompt = load_prompt(
+                args.profile, hms(duration), args.language, args.max_guides)
+            schema = load_schema(args.profile)
+        except UnknownProfileError as error:
+            sys.exit(str(error))
         print(f"[1/2] Gemini({args.model}) 영상 분석 중... (수십 초~수 분)")
         try:
             data = normalize(call_gemini(
-                args.url, prompt, args.model, key, load_schema(args.profile)))
+                args.url, prompt, args.model, key, schema))
         except RateLimitError as error:
             print("Gemini 무료 티어/속도 한도에 도달했습니다.")
             print(str(error))
