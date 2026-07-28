@@ -128,6 +128,27 @@ class CoreContractTests(unittest.TestCase):
         self.assertEqual(0.0, normalized["visual_guides"][0]["importance"])
         self.assertNotIn("_normalization_warnings", normalized)
 
+    def test_normalize_stamps_contract_version(self):
+        from stepkeeper.contract import CONTRACT_VERSION
+        normalized = analyze.normalize(self.valid_data())
+        self.assertEqual(CONTRACT_VERSION, normalized["_contract_version"])
+        # 이미 스탬프된 데이터(캐시 재정규화)는 덮어쓰지 않는다
+        data = self.valid_data()
+        data["_contract_version"] = "0-test"
+        self.assertEqual("0-test", analyze.normalize(data)["_contract_version"])
+
+    def test_high_risk_domain_warns(self):
+        """의료·전기·가스 등 안전 결정 영상은 경고 채널로 표시된다 (외부 리뷰 #10)."""
+        data = self.valid_data()
+        data["title"] = "콘센트 전기 배선 교체하기"
+        errors, warnings = validate(data)
+        self.assertEqual([], errors)
+        self.assertTrue(any("고위험" in warning for warning in warnings))
+
+        safe = self.valid_data()
+        errors, warnings = validate(safe)
+        self.assertFalse(any("고위험" in warning for warning in warnings))
+
     def test_vague_english_guide_text_warns(self):
         data = self.valid_data()
         data["visual_guides"][0]["guide_text"] = "Cook until done, just enough."

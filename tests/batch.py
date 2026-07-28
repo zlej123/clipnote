@@ -229,6 +229,12 @@ def main():
     print(f"리포트: {report}")
     if failed or semantic_suite_failed:
         sys.exit(1)
+    # fail-closed (외부 리뷰 #7): "전체 스킵 + 분석 0개"가 exit 0이면 CI 초록불이
+    # 실제 품질을 전혀 의미하지 않는다. 검증한 것이 하나도 없으면 성공이 아니다.
+    if total and passed == 0:
+        sys.exit(f"batch: {total}개 중 통과 0개 (스킵 {skipped}) — "
+                 "아무것도 검증되지 않았으므로 실패로 처리합니다. "
+                 "(--analyze로 분석을 생성했는지, 캐시 경로가 맞는지 확인)")
 
 
 if __name__ == "__main__":

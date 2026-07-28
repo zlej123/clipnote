@@ -1,9 +1,28 @@
 #!/usr/bin/env python3
 """Validate normalized analysis against the core visual-guide contract."""
 
+# 분석 JSON의 계약 버전 (외부 리뷰 #6). 스키마·의미가 호환 불가하게 바뀔 때만 올린다.
+# normalize()가 _contract_version으로 스탬프하고, 소비자는 자기가 아는 버전과 대조해
+# "모르는 미래 버전"을 조용히 잘못 해석하는 대신 감지할 수 있다.
+CONTRACT_VERSION = "1"
+
 AMBIGUITY_TYPES = {"size", "thickness", "color", "state", "amount",
                    "position", "angle", "action", "texture"}
 # Multilingual vague fillers that defeat the purpose of guide_text.
+# 안전 결정이 필요한 고위험 도메인 신호 (외부 리뷰 #10). SKILL.md는 이런 영상을 제외하지만
+# 소비자 클라이언트의 자동 감지에는 상응하는 차단이 없었다. 계약 검증은 결정적이므로 여기서
+# 감지해 경고 채널로 올린다 — 클라이언트는 이 경고를 문서 상단 고지로 노출해야 한다.
+HIGH_RISK = [
+    # ko
+    "전기 배선", "누전", "차단기", "감전", "가스관", "가스 밸브", "가스레인지 설치",
+    "의료", "치료", "복용", "부상", "응급처치", "브레이크 수리", "전동 공구 개조",
+    # en
+    "electrical wiring", "circuit breaker", "mains power", "gas line", "gas valve",
+    "medical", "medication", "first aid", "brake repair", "chainsaw",
+    # ja
+    "電気配線", "ガス管", "医療", "応急処置",
+]
+
 VAGUE = [
     # ko
     "적당히", "적당량", "알맞게", "대충", "적절히", "먹기 좋게",
@@ -35,6 +54,15 @@ def validate(data: dict):
         return errors, warnings
     if not data.get("materials"):
         warnings.append("materials 비어 있음 (준비물 없는 영상이면 정상)")
+
+    # 고위험 도메인 감지 — 오탐을 감수하고 넓게 잡는다 (경고는 문서를 막지 않는다)
+    blob = " ".join([str(data.get("title", "")), str(data.get("category", "")),
+                     str(data.get("summary", ""))]).lower()
+    risk_hits = [kw for kw in HIGH_RISK if kw.lower() in blob]
+    if risk_hits:
+        warnings.append(
+            f"고위험 도메인 감지({', '.join(risk_hits[:3])}) — 이 문서는 참고용이며 "
+            "전문가 확인 없이 따라 하지 마세요. 클라이언트는 이 경고를 사용자에게 노출해야 합니다.")
 
     step_ids, previous_start = set(), -1
     for index, step in enumerate(steps):

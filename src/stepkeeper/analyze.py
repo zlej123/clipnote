@@ -137,6 +137,8 @@ def call_gemini(url: str, prompt: str, model: str, key: str,
 
 
 def normalize(data: dict) -> dict:
+    from .contract import CONTRACT_VERSION
+    data.setdefault("_contract_version", CONTRACT_VERSION)
     normalization_warnings = []
     for step in data.get("steps", []):
         step["t_start"] = mmss_to_sec(step.get("t_start"))

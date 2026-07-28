@@ -19,3 +19,7 @@ jobs:
       - run: pip install -e .
       - run: python -m compileall -q src/stepkeeper
       - run: python -m unittest discover -s tests -p "test_*.py" -v
+      # fixture 구조 검증(오프라인) — 코퍼스·validator가 어긋난 채 초록불이 되는 걸 막는다
+      # (실측: en_output을 10편으로 늘릴 때 validator 범위를 빠뜨렸는데 CI가 잡지 못했다).
+      # batch 실분석은 네트워크·키가 필요해 CI 밖 — 수동 실행이며 fail-closed다.
+      - run: python tests/validate_fixtures.py
