@@ -19,6 +19,7 @@ Usage:
         [--parent PAGE_ID]   # required for --export notion
 """
 import argparse
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -48,6 +49,8 @@ def main():
     ap.add_argument("--auto-pick", action="store_true",
                     help="캡처 후 AI가 후보 3장 중 장면을 자동 선택 (사람 검토는 picker에서)")
     ap.add_argument("--export", choices=("bundle", "obsidian", "goodnotes", "notion"))
+    ap.add_argument("--export-draft", action="store_true",
+                    help="검수 전 상태(자동 선택·선택 없음)에서도 내보내기 허용")
     ap.add_argument("--destination")
     ap.add_argument("--parent", help="Notion 부모 페이지 ID (--export notion)")
     ap.add_argument("--notion-token",
@@ -94,6 +97,21 @@ def main():
     run("render", vid, *render_flags)
 
     if args.export:
+        # 검수 전 초안을 완성본처럼 내보내지 않는다 (외부 리뷰: "완료되지 않은 결과도
+        # 완료처럼 보인다"). 사람이 고른 --picks나 의도된 --links-only는 통과, 자동 선택
+        # 또는 선택 없음은 --export-draft를 명시해야 내보낸다.
+        draft_reason = None
+        if not args.links_only and not args.picks:
+            meta_path = frames_dir(data_root(), vid, args.profile, args.language) / "picks-meta.json"
+            if picks and meta_path.exists() and                     json.loads(meta_path.read_text(encoding="utf-8")).get("source") == "auto":
+                draft_reason = "AI 자동 선택이 아직 검수되지 않았습니다"
+            elif not picks:
+                draft_reason = "프레임 선택이 없어 링크 전용 초안입니다"
+        if draft_reason and not args.export_draft:
+            picker = frames_dir(data_root(), vid, args.profile, args.language) / "picker.html"
+            sys.exit(f"[pipeline] 내보내기 중단: {draft_reason}.\n"
+                     f"  검수: {picker} 에서 확인 후 --picks <picks.json>으로 재실행\n"
+                     f"  초안임을 알고 내보내려면 --export-draft를 추가하세요.")
         print(f"[pipeline] 4) 내보내기 ({args.export})")
         export_flags = [vid, *common_flags, "--target", args.export]
         if args.destination:

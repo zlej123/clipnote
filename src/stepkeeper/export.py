@@ -143,16 +143,28 @@ def export_obsidian(data, rendered: Path, document: Path, vault: Path,
 
 
 def find_pdf_font(explicit: str = None):
+    """등록을 시도할 CJK 폰트 후보들 (존재하는 것만, 우선순위 순).
+
+    단일 반환이 아니라 목록인 이유: 후보가 존재해도 등록이 실패할 수 있다.
+    실측 — macOS 기본 AppleSDGothicNeo.ttc는 reportlab이 posts 테이블을 못 읽어
+    항상 실패하고, 예전 코드는 그대로 Helvetica로 떨어져 한글 PDF가 깨졌다
+    (외부 리뷰에서 재현됨). Supplemental의 ttf들이 실제로 등록되는 후보다.
+    """
     candidates = [
         explicit,
         "C:/Windows/Fonts/malgun.ttf",
+        "/System/Library/Fonts/Supplemental/AppleGothic.ttf",
+        "/System/Library/Fonts/Supplemental/NotoSansGothic-Regular.ttf",
         "/System/Library/Fonts/AppleSDGothicNeo.ttc",
         "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
     ]
-    for candidate in candidates:
-        if candidate and Path(candidate).exists():
-            return Path(candidate)
-    return None
+    return [Path(c) for c in candidates if c and Path(c).exists()]
+
+
+def _has_cjk(text: str) -> bool:
+    return any("\uac00" <= ch <= "\ud7a3" or "\u3040" <= ch <= "\u30ff"
+               or "\u4e00" <= ch <= "\u9fff" for ch in text)
 
 
 def export_goodnotes(data, rendered: Path, destination: Path,
@@ -170,16 +182,18 @@ def export_goodnotes(data, rendered: Path, destination: Path,
 
     destination.mkdir(parents=True, exist_ok=True)
     target = destination / f"{safe_name(data.get('title', 'document'))}.pdf"
-    font = find_pdf_font(font_path)
     font_name = "Helvetica"
-    if font:
+    for font in find_pdf_font(font_path):
         try:
             pdfmetrics.registerFont(TTFont("StepkeeperFont", str(font)))
             font_name = "StepkeeperFont"
+            break
         except Exception as error:
-            # Some system TTCs (e.g. AppleSDGothicNeo) use outlines reportlab
-            # cannot parse; fall back to the built-in Latin font.
-            print(f"[export] 폰트 등록 실패 ({font.name}): {error}; Helvetica 사용")
+            print(f"[export] 폰트 등록 실패 ({font.name}): {error}; 다음 후보 시도")
+    if font_name == "Helvetica" and _has_cjk(json.dumps(data, ensure_ascii=False)):
+        # 조용한 폴백이 깨진 PDF를 "완료"처럼 보이게 했다 — 소리 내서 알린다
+        print("[export] ⚠️ CJK 텍스트가 있는데 등록 가능한 CJK 폰트가 없습니다. "
+              "이 PDF의 한글·일본어·한자는 깨져 보입니다 — --font <ttf 경로>로 지정하세요.")
 
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle(

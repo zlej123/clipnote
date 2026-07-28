@@ -71,7 +71,7 @@ Artifacts are written under the current directory (override with `STEPKEEPER_DAT
 | Target | How | Status |
 |--------|-----|--------|
 | Obsidian | Markdown + attachments copied into a vault folder | done |
-| Goodnotes | PDF (CJK fonts supported) for the import/share flow | done |
+| Goodnotes | PDF for the import/share flow. CJK works when a system CJK font registers (probed automatically; `--font` to override) — a loud warning is printed otherwise | done |
 | Notion | direct upload via the Notion API (your integration token) | done |
 
 ```bash
