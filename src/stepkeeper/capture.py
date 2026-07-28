@@ -43,15 +43,30 @@ def ensure_video(vid: str) -> Path:
     return mp4
 
 
+# 후보 간격 상한(초). center 앞뒤로 이만큼까지만 벌린다.
+CANDIDATE_SPREAD = 4
+
+
 def candidate_times(step: dict, guide: dict, duration: int):
-    """Spread three candidates across the linked step."""
+    """center 주변에서 세 후보를 뽑는다 (스텝 경계가 아니라).
+
+    예전에는 before/after를 스텝 경계(t_start-1, t_end+1)에 뒀는데, 긴 스텝에서는 그 둘이
+    **다른 주제**를 찍는다. 실측 사례: 19초짜리 스텝의 가이드에서 후보가 18·31·39초로 잡혔고,
+    18초는 이전 섹션, 39초는 다음 섹션이었다. 정작 가이드가 요구한 동작은 26~29초에 있었는데
+    세 장 중 어디에도 없어서, 사람이 골라도 실패할 선택지가 됐다.
+
+    이제 스텝 길이의 1/4(최대 CANDIDATE_SPREAD초)만큼만 벌려 "같은 순간의 앞뒤"를 준다.
+    스텝 정보가 없으면 종전처럼 center±CANDIDATE_SPREAD.
+    """
     center = guide["best_visual_timestamp"]
+    last = max(0, duration - 1)
     if step:
-        before = max(0, step.get("t_start", center) - 1)
-        after = min(max(0, duration - 1), step.get("t_end", center) + 1)
+        length = max(0, step.get("t_end", center) - step.get("t_start", center))
+        spread = max(1, min(CANDIDATE_SPREAD, length // 4))
     else:
-        before = max(0, center - 4)
-        after = min(max(0, duration - 1), center + 4)
+        spread = CANDIDATE_SPREAD
+    before = max(0, center - spread)
+    after = min(last, center + spread)
     return dict(zip(SLOTS, (before, center, after)))
 
 

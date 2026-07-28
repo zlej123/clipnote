@@ -216,12 +216,34 @@ class ExplicitSelectionTests(unittest.TestCase):
             self.assertIsNone(renderer.choose_frame(
                 "vg-1", {"vg-1": "none"}, Path(temp)))
 
-    def test_candidates_span_linked_step(self):
-        step = {"t_start": 6, "t_end": 15}
-        guide = {"best_visual_timestamp": 7}
+    def test_candidates_stay_near_center(self):
+        """후보는 스텝 경계가 아니라 center 주변에서 뽑는다.
+
+        회귀 방지(실측): 19초짜리 스텝에서 예전 규칙은 18·31·39초를 뽑았고, 18초는 이전
+        섹션·39초는 다음 섹션이라 가이드가 요구한 26~29초 동작이 세 장 어디에도 없었다.
+        """
+        # 9초 스텝 → spread = 9//4 = 2
         self.assertEqual(
-            {"before": 5, "center": 7, "after": 16},
-            capture.candidate_times(step, guide, 30))
+            {"before": 5, "center": 7, "after": 9},
+            capture.candidate_times({"t_start": 6, "t_end": 15},
+                                    {"best_visual_timestamp": 7}, 30))
+        # 19초 스텝이어도 상한 4초를 넘지 않는다 (예전엔 18/39로 벌어졌다)
+        self.assertEqual(
+            {"before": 27, "center": 31, "after": 35},
+            capture.candidate_times({"t_start": 19, "t_end": 38},
+                                    {"best_visual_timestamp": 31}, 82))
+        # 아주 짧은 스텝에서도 최소 1초는 벌린다 (세 장이 같은 프레임이 되면 선택이 무의미)
+        self.assertEqual(
+            {"before": 9, "center": 10, "after": 11},
+            capture.candidate_times({"t_start": 9, "t_end": 12},
+                                    {"best_visual_timestamp": 10}, 30))
+        # 스텝 정보가 없으면 종전대로 ±4, 영상 경계로 클램프
+        self.assertEqual(
+            {"before": 0, "center": 2, "after": 6},
+            capture.candidate_times(None, {"best_visual_timestamp": 2}, 30))
+        self.assertEqual(
+            {"before": 25, "center": 29, "after": 29},
+            capture.candidate_times(None, {"best_visual_timestamp": 29}, 30))
 
 
 class ExportTests(unittest.TestCase):
