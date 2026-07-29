@@ -1,0 +1,33 @@
+{
+  "$comment": "안전 결정이 필요한 고위험 도메인 신호. 코어 contract.py와 앱·확장 클라이언트가 같은 원천으로 감지한다 — 목록 수정 후 클라이언트 자산 sync 필요.",
+  "keywords": [
+    "전기 배선",
+    "누전",
+    "차단기",
+    "감전",
+    "가스관",
+    "가스 밸브",
+    "가스레인지 설치",
+    "의료",
+    "치료",
+    "복용",
+    "부상",
+    "응급처치",
+    "브레이크 수리",
+    "전동 공구 개조",
+    "electrical wiring",
+    "circuit breaker",
+    "mains power",
+    "gas line",
+    "gas valve",
+    "medical",
+    "medication",
+    "first aid",
+    "brake repair",
+    "chainsaw",
+    "電気配線",
+    "ガス管",
+    "医療",
+    "応急処置"
+  ]
+}

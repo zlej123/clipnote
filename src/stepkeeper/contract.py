@@ -9,19 +9,14 @@ CONTRACT_VERSION = "1"
 AMBIGUITY_TYPES = {"size", "thickness", "color", "state", "amount",
                    "position", "angle", "action", "texture"}
 # Multilingual vague fillers that defeat the purpose of guide_text.
-# 안전 결정이 필요한 고위험 도메인 신호 (외부 리뷰 #10). SKILL.md는 이런 영상을 제외하지만
-# 소비자 클라이언트의 자동 감지에는 상응하는 차단이 없었다. 계약 검증은 결정적이므로 여기서
-# 감지해 경고 채널로 올린다 — 클라이언트는 이 경고를 문서 상단 고지로 노출해야 한다.
-HIGH_RISK = [
-    # ko
-    "전기 배선", "누전", "차단기", "감전", "가스관", "가스 밸브", "가스레인지 설치",
-    "의료", "치료", "복용", "부상", "응급처치", "브레이크 수리", "전동 공구 개조",
-    # en
-    "electrical wiring", "circuit breaker", "mains power", "gas line", "gas valve",
-    "medical", "medication", "first aid", "brake repair", "chainsaw",
-    # ja
-    "電気配線", "ガス管", "医療", "応急処置",
-]
+# 안전 결정이 필요한 고위험 도메인 신호 (외부 리뷰 #10·3차 P1). 목록은
+# skill-core/engine/highrisk.json이 단일 원천 — 앱·확장이 자산 sync로 같은 것을 쓴다.
+import json as _json
+from pathlib import Path as _Path
+
+HIGH_RISK = _json.loads(
+    (_Path(__file__).parent / "skill-core" / "engine" / "highrisk.json")
+    .read_text(encoding="utf-8"))["keywords"]
 
 VAGUE = [
     # ko
