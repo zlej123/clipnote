@@ -27,6 +27,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 # 번역본이 없는 언어는 영어로 떨어진다(한국어로 새지 않는다).
 DOC_STRINGS = {
     "en": {
+        "high_risk": "Safety-critical topic. Treat this document as reference only — do not follow it without expert guidance.",
         "source_link": "Watch on YouTube",
         "materials": "What you need",
         "ingredients": "Ingredients",
@@ -37,6 +38,7 @@ DOC_STRINGS = {
         "see_at": "▶ See it in the video at {time}",
     },
     "ko": {
+        "high_risk": "안전이 걸린 주제입니다. 이 문서는 참고용입니다 — 전문가 확인 없이 따라 하지 마세요.",
         "source_link": "YouTube 원본",
         "materials": "준비물",
         "ingredients": "준비 재료",
@@ -47,6 +49,7 @@ DOC_STRINGS = {
         "see_at": "▶ 영상 {time}에서 직접 확인",
     },
     "ja": {
+        "high_risk": "安全に関わるテーマです。この文書は参考用です — 専門家の確認なしに実行しないでください。",
         "source_link": "YouTube で見る",
         "materials": "用意するもの",
         "ingredients": "材料",
@@ -208,8 +211,13 @@ def export_goodnotes(data, rendered: Path, destination: Path,
 
     labels = doc_strings(data.get("_output_language", ""))
     is_recipe = data.get("_profile") == "recipe"
+    from .contract import high_risk_hits
     story = [
         Paragraph(escape(data.get("title", "")), title_style),
+    ]
+    if high_risk_hits(data):
+        story.append(Paragraph("⚠️ " + escape(labels["high_risk"]), body_style))
+    story += [
         Paragraph(escape(data.get("summary", "")), body_style),
         Paragraph(f'<link href="https://youtu.be/{video_id}">{labels["source_link"]}</link>',
                   body_style),
@@ -315,8 +323,14 @@ def build_notion_blocks(data: dict, video_id: str, image_ids: dict) -> list:
 
     절 제목·라벨은 data["_output_language"]를 따른다 (문서 뼈대와 같은 규칙).
     """
+    from .contract import high_risk_hits
     labels = doc_strings(data.get("_output_language", ""))
     blocks = []
+    if high_risk_hits(data):
+        # 안전 고지는 파일 밖 UI가 아니라 저장물 자체에 남아야 한다 (리뷰 3차 P1-3 잔여)
+        blocks.append({"type": "callout", "callout": {
+            "icon": {"type": "emoji", "emoji": "⚠️"},
+            "rich_text": _rich(labels["high_risk"])}})
     if data.get("summary"):
         blocks.append({"type": "paragraph",
                        "paragraph": {"rich_text": _rich(data["summary"])}})
