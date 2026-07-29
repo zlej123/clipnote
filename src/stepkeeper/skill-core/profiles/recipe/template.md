@@ -6,6 +6,10 @@
 ---
 
 ## 🍳 {{title}}
+{{#high_risk}}
+
+> ⚠️ **Safety-critical topic.** Treat this document as reference only — do not follow it without expert guidance.
+{{/high_risk}}
 
 {{summary}}
 

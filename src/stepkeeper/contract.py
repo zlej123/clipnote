@@ -29,6 +29,13 @@ VAGUE = [
 ]
 
 
+def high_risk_hits(data: dict) -> list:
+    """제목·분류·요약에서 매칭된 고위험 키워드. render/export가 문서 고지에 재사용한다."""
+    blob = " ".join([str(data.get("title", "")), str(data.get("category", "")),
+                     str(data.get("summary", ""))]).lower()
+    return [kw for kw in HIGH_RISK if kw.lower() in blob]
+
+
 def validate(data: dict):
     """Return (errors, warnings). Errors are contract violations."""
     errors, warnings = [], []
@@ -51,9 +58,7 @@ def validate(data: dict):
         warnings.append("materials 비어 있음 (준비물 없는 영상이면 정상)")
 
     # 고위험 도메인 감지 — 오탐을 감수하고 넓게 잡는다 (경고는 문서를 막지 않는다)
-    blob = " ".join([str(data.get("title", "")), str(data.get("category", "")),
-                     str(data.get("summary", ""))]).lower()
-    risk_hits = [kw for kw in HIGH_RISK if kw.lower() in blob]
+    risk_hits = high_risk_hits(data)
     if risk_hits:
         warnings.append(
             f"고위험 도메인 감지({', '.join(risk_hits[:3])}) — 이 문서는 참고용이며 "

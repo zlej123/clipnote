@@ -143,6 +143,37 @@ class CoreContractTests(unittest.TestCase):
         data["_contract_version"] = "0-test"
         self.assertEqual("0-test", analyze.normalize(data)["_contract_version"])
 
+    def test_saved_outputs_carry_the_safety_notice(self):
+        """고지는 화면 UI만이 아니라 **저장물 자체**에 남는다 (리뷰 3차 P1-3 잔여).
+
+        파일을 공유받은 사람은 앱 화면을 보지 않는다 — markdown·Notion·PDF 모두에
+        고지가 있어야 하고, 무해한 문서는 한 바이트도 달라지지 않아야 한다.
+        """
+        risky = CoreContractTests().valid_data()
+        risky["title"] = "콘센트 전기 배선 교체하기"
+        safe = CoreContractTests().valid_data()
+
+        # markdown: 템플릿 섹션
+        template = renderer.load_template("generic", "ko")
+        body = template.split("\n---\n", 1)[1]
+        with tempfile.TemporaryDirectory() as temp:
+            images = Path(temp)
+            ctx_risky = renderer.build_context("vid00000000", risky, {}, images, images)
+            ctx_safe = renderer.build_context("vid00000000", safe, {}, images, images)
+            md_risky = renderer.render(body, ctx_risky)
+            md_safe = renderer.render(body, ctx_safe)
+        self.assertIn("⚠️ **안전이 걸린 주제입니다.**", md_risky)
+        self.assertNotIn("⚠️", md_safe)
+        # 무해 문서는 고지 도입 전과 같은 모양 (제목 다음 빈 줄 하나 → 요약)
+        self.assertIn("## 📋 테스트 가이드\n\n요약", md_safe)
+
+        # Notion: 최상단 callout
+        blocks_risky = exporter.build_notion_blocks(risky, "vid00000000", {})
+        blocks_safe = exporter.build_notion_blocks(safe, "vid00000000", {})
+        self.assertEqual("callout", blocks_risky[0]["type"])
+        self.assertIn("안전이 걸린 주제", str(blocks_risky[0]))
+        self.assertNotIn("callout", [b["type"] for b in blocks_safe])
+
     def test_high_risk_domain_warns(self):
         """의료·전기·가스 등 안전 결정 영상은 경고 채널로 표시된다 (외부 리뷰 #10)."""
         data = self.valid_data()

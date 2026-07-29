@@ -166,7 +166,9 @@ def build_context(vid: str, data: dict, picks: dict, source_frames: Path,
 
     materials = data.get("materials") or data.get("ingredients") or []
     summary = data.get("summary") or data.get("video_summary") or ""
+    from .contract import high_risk_hits
     return {
+        "high_risk": bool(high_risk_hits(data)),
         "title": data.get("title", ""),
         "summary": summary,
         "video_summary": summary,
