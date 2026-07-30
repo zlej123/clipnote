@@ -274,6 +274,24 @@ class ExplicitSelectionTests(unittest.TestCase):
             self.assertIsNone(renderer.choose_frame(
                 "vg-1", {"vg-1": "none"}, Path(temp)))
 
+    def test_hyphen_leading_video_id_survives_pipeline(self):
+        """유튜브 ID는 '-'로 시작할 수 있다 (base64url) — argparse가 옵션으로 읽으면 안 된다.
+
+        실측 실패: -kIaNu00a4s 로 파이프라인을 돌리면 capture 단계에서
+        "the following arguments are required: video_id"로 죽었다.
+        """
+        from stepkeeper import pipeline
+        cmd = pipeline.command("capture", "-kIaNu00a4s", "--profile", "generic")
+        self.assertEqual("--", cmd[-2])
+        self.assertEqual("-kIaNu00a4s", cmd[-1])
+        # 실제로 argparse가 위치 인자로 받는지 (하위 파서와 같은 구성으로 재현)
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument("video_id")
+        parser.add_argument("--profile", default="generic")
+        parsed = parser.parse_args(cmd[3:])   # [python, -m, module] 다음부터가 인자
+        self.assertEqual("-kIaNu00a4s", parsed.video_id)
+
     def test_candidates_stay_near_center(self):
         """후보는 스텝 경계가 아니라 center 주변에서 뽑는다.
 
