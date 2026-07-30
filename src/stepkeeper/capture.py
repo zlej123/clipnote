@@ -30,14 +30,44 @@ def sh(*args: str) -> None:
         sys.exit(f"실패: {' '.join(args[:3])}...\n{result.stderr[-2000:]}")
 
 
+def playable(path: Path) -> bool:
+    """프레임이 **실제로 디코드되는지** 확인 (다운로드·캐시 검증 공용).
+
+    스트림 메타만 보면 안 된다: 실측된 깨진 파일은 헤더가 멀쩡해서 ffprobe가
+    "h264, 122초"를 정상 보고했지만 (48KB뿐이라) 프레임 데이터가 없었다.
+    한 장 디코드가 유일하게 확실한 판정이다.
+    """
+    result = subprocess.run(
+        ["ffmpeg", "-v", "error", "-i", str(path), "-frames:v", "1", "-f", "null", "-"],
+        capture_output=True, text=True)
+    return result.returncode == 0 and not result.stderr.strip()
+
+
 def ensure_video(vid: str) -> Path:
+    """480p 영상을 받아 두고 재사용한다. **받은 파일이 재생 가능한지 확인한다.**
+
+    yt-dlp는 포맷을 못 가져와도 exit 0으로 끝나며 쓸 수 없는 조각 파일을 남길 수 있다
+    (실측: 48KB 파일 → ffmpeg "Invalid data found"). 그 파일이 캐시로 남으면 이후 실행이
+    영원히 같은 에러로 죽는다 — 검증에 실패하면 지우고 원인을 알려주며 멈춘다.
+    """
     mp4 = data_root() / "work" / f"{vid}.mp4"
+    if mp4.exists() and not playable(mp4):
+        print("[1/3] 캐시된 영상이 손상됨 — 지우고 다시 받습니다")
+        mp4.unlink()
     if not mp4.exists():
         print("[1/3] 480p 영상 다운로드...")
         sh(sys.executable, "-m", "yt_dlp", "-f",
            "bv*[height<=480]+ba/b[height<=480]/b",
            "--merge-output-format", "mp4", "-o", str(mp4),
            f"https://www.youtube.com/watch?v={vid}")
+        if not mp4.exists() or not playable(mp4):
+            size = mp4.stat().st_size if mp4.exists() else 0
+            mp4.unlink(missing_ok=True)
+            sys.exit(
+                f"영상을 받지 못했습니다 ({vid}, {size}바이트로 중단). yt-dlp가 포맷을 "
+                "가져오지 못했을 수 있습니다 — 최신 yt-dlp로 올리거나, YouTube 추출에 "
+                "필요한 JS 런타임(deno 등)을 설치한 뒤 다시 시도하세요.\n"
+                "  pip install -U yt-dlp   /   brew install deno")
     else:
         print("[1/3] 영상 캐시 사용")
     return mp4

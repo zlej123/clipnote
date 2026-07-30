@@ -274,6 +274,20 @@ class ExplicitSelectionTests(unittest.TestCase):
             self.assertIsNone(renderer.choose_frame(
                 "vg-1", {"vg-1": "none"}, Path(temp)))
 
+    def test_playable_rejects_header_only_video(self):
+        """헤더만 있고 프레임이 없는 파일을 걸러낸다 (배치 검증 실측).
+
+        yt-dlp가 exit 0으로 끝내고 48KB 조각을 남기는 경우가 있는데, ffprobe는
+        "h264, 122초"로 정상 보고한다 — 한 장 디코드해야 판정된다. 이 파일이 캐시로
+        남으면 이후 모든 실행이 알 수 없는 ffmpeg 에러로 죽는다.
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            broken = Path(temp) / "broken.mp4"
+            broken.write_bytes(b"\x00\x00\x00\x18ftypmp42" + b"\x00" * 2000)
+            self.assertFalse(capture.playable(broken))
+            missing = Path(temp) / "nope.mp4"
+            self.assertFalse(capture.playable(missing))
+
     def test_hyphen_leading_video_id_survives_pipeline(self):
         """유튜브 ID는 '-'로 시작할 수 있다 (base64url) — argparse가 옵션으로 읽으면 안 된다.
 
