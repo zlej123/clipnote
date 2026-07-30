@@ -29,8 +29,18 @@ from .common import analysis_file, data_root, frames_dir, video_id
 sys.stdout.reconfigure(encoding="utf-8")
 
 
+def command(module: str, *args: str) -> list:
+    """하위 모듈 명령 조립 — 위치 인자(video_id/url)를 "--" 뒤에 둔다."""
+    positional, *rest = args
+    return [sys.executable, "-m", f"stepkeeper.{module}", *rest, "--", positional]
+
+
 def run(module: str, *args: str) -> None:
-    result = subprocess.run([sys.executable, "-m", f"stepkeeper.{module}", *args])
+    """하위 모듈 실행. 첫 인자(video_id)는 "--" 뒤에 둔다 —
+    유튜브 ID는 '-'로 시작할 수 있고(base64url), 그러면 argparse가 옵션으로 읽어
+    "the following arguments are required: video_id"로 죽는다 (실측: -kIaNu00a4s).
+    """
+    result = subprocess.run(command(module, *args))
     if result.returncode != 0:
         sys.exit(f"[pipeline] {module} 실패 (exit {result.returncode})")
 
