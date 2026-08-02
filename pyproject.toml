@@ -7,7 +7,7 @@ name = "stepkeeper"
 version = "0.2.0"
 description = "Turn how-to YouTube videos into follow-along documents with visual guides at ambiguous moments."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "MIT" }
 dependencies = [
     "yt-dlp>=2026.7.4",
