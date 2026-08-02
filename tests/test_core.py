@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import shutil
 import sys
 import tempfile
 import unittest
@@ -274,6 +275,7 @@ class ExplicitSelectionTests(unittest.TestCase):
             self.assertIsNone(renderer.choose_frame(
                 "vg-1", {"vg-1": "none"}, Path(temp)))
 
+    @unittest.skipUnless(shutil.which("ffmpeg"), "ffmpeg 필요 (CI는 명시 설치)")
     def test_playable_rejects_header_only_video(self):
         """헤더만 있고 프레임이 없는 파일을 걸러낸다 (배치 검증 실측).
 
