@@ -1,0 +1,67 @@
+{
+  "evaluation_id": "2026-08-02-recovery-review",
+  "review_kind": "recovery_rerun",
+  "note": "Deleted review sheets were reconstructed from surviving metadata and freshly extracted frames. The Korean rerun produced 20 guides rather than the original 19, so it is not treated as the original batch.",
+  "baseline": {
+    "selection_agreement": {"agreed": 10, "total": 18, "rate": 0.5556}
+  },
+  "batch_metrics": {
+    "selection_agreement": {"agreed": 38, "total": 44, "rate": 0.8636},
+    "candidate_coverage": {"hits": 37, "total": 44, "rate": 0.8409},
+    "english": {
+      "selection_agreement": {"agreed": 23, "total": 24, "rate": 0.9583},
+      "candidate_coverage": {"hits": 22, "total": 24, "rate": 0.9167}
+    },
+    "korean_recovery_rerun": {
+      "selection_agreement": {"agreed": 15, "total": 20, "rate": 0.75},
+      "candidate_coverage": {"hits": 15, "total": 20, "rate": 0.75}
+    }
+  },
+  "records": [
+    {"review_number":"#1","video_id":"TA3Uo3a9674","profile":"recipe","language":"en","guide_id":"vg-1","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"#2","video_id":"IAgmW_gTxls","profile":"recipe","language":"en","guide_id":"vg-1","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"#3","video_id":"IAgmW_gTxls","profile":"recipe","language":"en","guide_id":"vg-2","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"#4","video_id":"GC_Szxdqh2Y","profile":"generic","language":"en","guide_id":"vg-1","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"#5","video_id":"GC_Szxdqh2Y","profile":"generic","language":"en","guide_id":"vg-2","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"#6","video_id":"GC_Szxdqh2Y","profile":"generic","language":"en","guide_id":"vg-3","ai_slot":"none","human_slot":"before","candidate_hit":true,"note":"The before candidate shows the two narrow sections raised; AI incorrectly rejected all candidates."},
+    {"review_number":"#7","video_id":"Ft9qhSnF5gE","profile":"generic","language":"en","guide_id":"vg-1","ai_slot":"none","human_slot":"none","candidate_hit":false,"note":"No candidate shows a screwdriver prying the handle cap."},
+    {"review_number":"#8","video_id":"Ft9qhSnF5gE","profile":"generic","language":"en","guide_id":"vg-2","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"#9","video_id":"PFDElc5sfSM","profile":"recipe","language":"en","guide_id":"vg-1","ai_slot":"center","human_slot":"center","candidate_hit":true,"note":"Accepted as borderline: grain is visible, although framing is not a tight close-up."},
+    {"review_number":"#10","video_id":"PFDElc5sfSM","profile":"recipe","language":"en","guide_id":"vg-2","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"#11","video_id":"PFDElc5sfSM","profile":"recipe","language":"en","guide_id":"vg-3","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"#12","video_id":"PFDElc5sfSM","profile":"recipe","language":"en","guide_id":"vg-4","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"#13","video_id":"-kIaNu00a4s","profile":"generic","language":"en","guide_id":"vg-1","ai_slot":"after","human_slot":"after","candidate_hit":true},
+    {"review_number":"#14","video_id":"-kIaNu00a4s","profile":"generic","language":"en","guide_id":"vg-2","ai_slot":"after","human_slot":"after","candidate_hit":true},
+    {"review_number":"#15","video_id":"-kIaNu00a4s","profile":"generic","language":"en","guide_id":"vg-3","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"#16","video_id":"SYPFon69vKs","profile":"generic","language":"en","guide_id":"vg-1","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"#17","video_id":"SYPFon69vKs","profile":"generic","language":"en","guide_id":"vg-2","ai_slot":"none","human_slot":"none","candidate_hit":false},
+    {"review_number":"#18","video_id":"tDo0uRYnaoQ","profile":"generic","language":"en","guide_id":"vg-1","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"#19","video_id":"tDo0uRYnaoQ","profile":"generic","language":"en","guide_id":"vg-2","ai_slot":"after","human_slot":"after","candidate_hit":true},
+    {"review_number":"#20","video_id":"tDo0uRYnaoQ","profile":"generic","language":"en","guide_id":"vg-3","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"#21","video_id":"SbURodJWeMM","profile":"generic","language":"en","guide_id":"vg-1","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"#22","video_id":"SbURodJWeMM","profile":"generic","language":"en","guide_id":"vg-2","ai_slot":"after","human_slot":"after","candidate_hit":true},
+    {"review_number":"#23","video_id":"SbURodJWeMM","profile":"generic","language":"en","guide_id":"vg-3","ai_slot":"after","human_slot":"after","candidate_hit":true},
+    {"review_number":"#24","video_id":"tU1fvfbNBtY","profile":"generic","language":"en","guide_id":"vg-1","ai_slot":"after","human_slot":"after","candidate_hit":true},
+
+    {"review_number":"ㄱ1","video_id":"7GOnZ0-PW6w","profile":"recipe","language":"ko","guide_id":"vg-1","ai_slot":"after","human_slot":"none","candidate_hit":false,"note":"Scallion is visible but the required pepper is absent; the useful moment falls outside the candidates."},
+    {"review_number":"ㄱ2","video_id":"7GOnZ0-PW6w","profile":"recipe","language":"ko","guide_id":"vg-2","ai_slot":"before","human_slot":"before","candidate_hit":true},
+    {"review_number":"ㄱ3","video_id":"4ioPBiTWm3M","profile":"recipe","language":"ko","guide_id":"vg-1","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"ㄱ4","video_id":"4ioPBiTWm3M","profile":"recipe","language":"ko","guide_id":"vg-2","ai_slot":"after","human_slot":"after","candidate_hit":true},
+    {"review_number":"ㄱ5","video_id":"4ioPBiTWm3M","profile":"recipe","language":"ko","guide_id":"vg-3","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"ㄱ6","video_id":"Ff9BQUkhTZ4","profile":"generic","language":"ko","guide_id":"vg-1","ai_slot":"center","human_slot":"after","candidate_hit":true,"note":"The center is obscured by the hands; after shows the aligned fold more clearly."},
+    {"review_number":"ㄱ7","video_id":"Ff9BQUkhTZ4","profile":"generic","language":"ko","guide_id":"vg-2","ai_slot":"after","human_slot":"after","candidate_hit":true},
+    {"review_number":"ㄱ8","video_id":"-kIaNu00a4s","profile":"generic","language":"ko","guide_id":"vg-1","ai_slot":"center","human_slot":"center","candidate_hit":true,"note":"Accepted as borderline: the rope passes through the loop but is partially obscured."},
+    {"review_number":"ㄱ9","video_id":"SYPFon69vKs","profile":"generic","language":"ko","guide_id":"vg-1","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"ㄱ10","video_id":"SYPFon69vKs","profile":"generic","language":"ko","guide_id":"vg-2","ai_slot":"none","human_slot":"none","candidate_hit":false,"note":"No candidate shows the wrench turning the packing nut."},
+    {"review_number":"ㄱ11","video_id":"SYPFon69vKs","profile":"generic","language":"ko","guide_id":"vg-3","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"ㄱ12","video_id":"Ft9qhSnF5gE","profile":"generic","language":"ko","guide_id":"vg-1","ai_slot":"after","human_slot":"after","candidate_hit":true},
+    {"review_number":"ㄱ13","video_id":"Ft9qhSnF5gE","profile":"generic","language":"ko","guide_id":"vg-2","ai_slot":"none","human_slot":"none","candidate_hit":false,"note":"No candidate shows tightening with a wrench."},
+    {"review_number":"ㄱ14","video_id":"tDo0uRYnaoQ","profile":"generic","language":"ko","guide_id":"vg-1","ai_slot":"before","human_slot":"none","candidate_hit":false,"note":"The translation of toothpick is correct, but no candidate shows the toothpick dotting the nail; the action starts after the window."},
+    {"review_number":"ㄱ15","video_id":"tDo0uRYnaoQ","profile":"generic","language":"ko","guide_id":"vg-2","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"ㄱ16","video_id":"-er3DNMlISo","profile":"generic","language":"ko","guide_id":"vg-1","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"ㄱ17","video_id":"-er3DNMlISo","profile":"generic","language":"ko","guide_id":"vg-2","ai_slot":"center","human_slot":"center","candidate_hit":true,"note":"Accepted as borderline: hands are securing the braid along the side of the scalp."},
+    {"review_number":"ㄱ18","video_id":"-er3DNMlISo","profile":"generic","language":"ko","guide_id":"vg-3","ai_slot":"center","human_slot":"center","candidate_hit":true},
+    {"review_number":"ㄱ19","video_id":"DRHGDOkQl3c","profile":"generic","language":"ko","guide_id":"vg-1","ai_slot":"none","human_slot":"before","candidate_hit":true,"note":"Before shows one arm vertical and the other extended back; AI incorrectly rejected it."},
+    {"review_number":"ㄱ20","video_id":"DRHGDOkQl3c","profile":"generic","language":"ko","guide_id":"vg-2","ai_slot":"center","human_slot":"none","candidate_hit":false,"note":"Candidates do not show both arms forward; the AI reason repeats the preceding guide pose, indicating cross-guide leakage."}
+  ]
+}

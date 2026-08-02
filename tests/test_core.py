@@ -312,28 +312,33 @@ class ExplicitSelectionTests(unittest.TestCase):
         회귀 방지(실측): 19초짜리 스텝에서 예전 규칙은 18·31·39초를 뽑았고, 18초는 이전
         섹션·39초는 다음 섹션이라 가이드가 요구한 26~29초 동작이 세 장 어디에도 없었다.
         """
-        # 9초 스텝 → spread = 9//4 = 2
+        # 동작은 같은 동작 안에 머물도록 ±1초
         self.assertEqual(
-            {"before": 5, "center": 7, "after": 9},
+            {"before": 6, "center": 7, "after": 8},
             capture.candidate_times({"t_start": 6, "t_end": 15},
-                                    {"best_visual_timestamp": 7}, 30))
-        # 19초 스텝이어도 상한 4초를 넘지 않는다 (예전엔 18/39로 벌어졌다)
+                                    {"best_visual_timestamp": 7,
+                                     "type": "action"}, 30))
+        # 상태·위치 가이드도 상한 2초를 넘지 않는다
         self.assertEqual(
-            {"before": 27, "center": 31, "after": 35},
+            {"before": 29, "center": 31, "after": 33},
             capture.candidate_times({"t_start": 19, "t_end": 38},
-                                    {"best_visual_timestamp": 31}, 82))
+                                    {"best_visual_timestamp": 31,
+                                     "type": "state"}, 82))
         # 아주 짧은 스텝에서도 최소 1초는 벌린다 (세 장이 같은 프레임이 되면 선택이 무의미)
         self.assertEqual(
             {"before": 9, "center": 10, "after": 11},
             capture.candidate_times({"t_start": 9, "t_end": 12},
-                                    {"best_visual_timestamp": 10}, 30))
-        # 스텝 정보가 없으면 종전대로 ±4, 영상 경계로 클램프
+                                    {"best_visual_timestamp": 10,
+                                     "type": "state"}, 30))
+        # 스텝 정보가 없어도 가이드 유형별 상한과 영상 경계를 지킨다
         self.assertEqual(
-            {"before": 0, "center": 2, "after": 6},
-            capture.candidate_times(None, {"best_visual_timestamp": 2}, 30))
+            {"before": 0, "center": 2, "after": 4},
+            capture.candidate_times(None, {"best_visual_timestamp": 2,
+                                           "type": "state"}, 30))
         self.assertEqual(
-            {"before": 25, "center": 29, "after": 29},
-            capture.candidate_times(None, {"best_visual_timestamp": 29}, 30))
+            {"before": 28, "center": 29, "after": 29},
+            capture.candidate_times(None, {"best_visual_timestamp": 29,
+                                           "type": "action"}, 30))
 
 
 class ExportTests(unittest.TestCase):

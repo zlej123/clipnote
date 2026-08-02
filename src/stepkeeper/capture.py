@@ -73,8 +73,9 @@ def ensure_video(vid: str) -> Path:
     return mp4
 
 
-# 후보 간격 상한(초). center 앞뒤로 이만큼까지만 벌린다.
-CANDIDATE_SPREAD = 4
+# 후보 간격 상한(초). 동작은 같은 동작 안에 머물도록 더 촘촘히 본다.
+ACTION_CANDIDATE_SPREAD = 1
+DEFAULT_CANDIDATE_SPREAD = 2
 
 
 def candidate_times(step: dict, guide: dict, duration: int):
@@ -85,16 +86,18 @@ def candidate_times(step: dict, guide: dict, duration: int):
     18초는 이전 섹션, 39초는 다음 섹션이었다. 정작 가이드가 요구한 동작은 26~29초에 있었는데
     세 장 중 어디에도 없어서, 사람이 골라도 실패할 선택지가 됐다.
 
-    이제 스텝 길이의 1/4(최대 CANDIDATE_SPREAD초)만큼만 벌려 "같은 순간의 앞뒤"를 준다.
-    스텝 정보가 없으면 종전처럼 center±CANDIDATE_SPREAD.
+    동작 가이드는 center±1초, 상태·위치·각도 등은 최대 ±2초로 제한한다. 실측 리뷰에서
+    ±4초 후보가 결과·준비·다음 동작으로 갈라져 같은 가이드의 비교가 아니게 된 문제를 막는다.
     """
     center = guide["best_visual_timestamp"]
     last = max(0, duration - 1)
+    limit = (ACTION_CANDIDATE_SPREAD if guide.get("type") == "action"
+             else DEFAULT_CANDIDATE_SPREAD)
     if step:
         length = max(0, step.get("t_end", center) - step.get("t_start", center))
-        spread = max(1, min(CANDIDATE_SPREAD, length // 4))
+        spread = max(1, min(limit, length // 4))
     else:
-        spread = CANDIDATE_SPREAD
+        spread = limit
     before = max(0, center - spread)
     after = min(last, center + spread)
     return dict(zip(SLOTS, (before, center, after)))
