@@ -9,12 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.12"]
+        # yt-dlp>=2026.7.4가 파이썬 3.10 이상 전용 — 3.9는 설치 단계에서 죽는다
+        python-version: ["3.10", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      # playable() 테스트가 실제 ffmpeg로 한 프레임 디코드한다 — 없으면 skip되므로 명시 설치
+      - run: sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
       - run: pip install -r requirements.txt
       - run: pip install -e .
       - run: python -m compileall -q src/stepkeeper
