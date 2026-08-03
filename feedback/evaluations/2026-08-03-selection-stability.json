@@ -1,0 +1,34 @@
+{
+ "evaluation_id": "2026-08-03-selection-stability",
+ "review_kind": "measurement_methodology",
+ "note": "Frame selection is inherently non-deterministic and slot-exact agreement is the wrong metric. Re-running the identical pipeline over the identical cached frames changed 5/35 picks at temperature 0.2 and 7/40 at temperature 0 — the serving stack, not the sampling temperature, is the source. The score swung 68.6% <-> 77.1% with no code change, which is wider than most improvements measured so far. Every one of the 7 flipped guides was a flip between two frames that the (human-calibrated) verification prompt accepts, so the instability is benign: both frames show what the guide asks for. Slot-exact agreement penalises benign variation because the human only ever judged the single frame that was shown to them.",
+ "findings": {
+  "pick_instability": {
+   "temperature_0.2": "5/35",
+   "temperature_0": "7/40",
+   "conclusion": "temperature is not the cause; do not ship a temperature change"
+  },
+  "flip_quality": {
+   "both_frames_valid": 7,
+   "one_frame_invalid": 0,
+   "checked_with": "2026-08-03 revised verification prompt (0 false rejections on 34 human-judged frames)"
+  },
+  "metric": {
+   "retire": "slot-exact agreement against a single judged frame",
+   "adopt": "wrong photos delivered (target 0) + correct photo vs link fallback",
+   "sample_status": "0 wrong photos delivered across the 35 judged guides; 2 fall back to a link where a valid frame existed"
+  },
+  "sampling": {
+   "note": "35 guides cannot resolve 99% — one error is 2.9 points and run-to-run noise is ~9. A 99% claim needs a larger batch and judgements on all three candidates, not one."
+  }
+ },
+ "flipped_guides": [
+  "IAgmW_gTxls|recipe|en|vg-1",
+  "PFDElc5sfSM|recipe|en|vg-1",
+  "PFDElc5sfSM|recipe|en|vg-2",
+  "tDo0uRYnaoQ|generic|en|vg-2",
+  "SbURodJWeMM|generic|en|vg-3",
+  "-kIaNu00a4s|generic|ko|vg-2",
+  "-er3DNMlISo|generic|ko|vg-2"
+ ]
+}
