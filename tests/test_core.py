@@ -243,6 +243,50 @@ class CoreContractTests(unittest.TestCase):
                             output_dir(ROOT, "abc", "generic", "ko"))
 
 
+class CandidateMetaTests(unittest.TestCase):
+    """재캡처 시 후보 타임스탬프가 달라지면 이전 선택은 거짓말이 된다 (외부 리뷰 P1-1):
+    같은 vg-1_center.jpg 파일명이 전혀 다른 장면을 가리키는데 picks/근거가 남는다."""
+
+    TIMES = {"vg-1": {"before": 7, "center": 8, "after": 9}}
+
+    def test_first_capture_records_meta_without_invalidating(self):
+        with tempfile.TemporaryDirectory() as temp:
+            out = Path(temp)
+            self.assertFalse(capture.sync_candidate_meta(out, self.TIMES))
+            self.assertEqual(self.TIMES, json.loads(
+                (out / "candidates.json").read_text(encoding="utf-8")))
+
+    def test_same_times_keep_existing_picks(self):
+        with tempfile.TemporaryDirectory() as temp:
+            out = Path(temp)
+            capture.sync_candidate_meta(out, self.TIMES)
+            (out / "picks.json").write_text('{"vg-1": "center"}', encoding="utf-8")
+            self.assertFalse(capture.sync_candidate_meta(out, dict(self.TIMES)))
+            self.assertTrue((out / "picks.json").exists())
+
+    def test_changed_times_invalidate_picks_and_reasons(self):
+        with tempfile.TemporaryDirectory() as temp:
+            out = Path(temp)
+            capture.sync_candidate_meta(out, self.TIMES)
+            (out / "picks.json").write_text('{"vg-1": "center"}', encoding="utf-8")
+            (out / "picks-meta.json").write_text('{"reasons": {}}', encoding="utf-8")
+            moved = {"vg-1": {"before": 6, "center": 8, "after": 10}}
+            self.assertTrue(capture.sync_candidate_meta(out, moved))
+            self.assertFalse((out / "picks.json").exists())
+            self.assertFalse((out / "picks-meta.json").exists())
+            self.assertEqual(moved, json.loads(
+                (out / "candidates.json").read_text(encoding="utf-8")))
+
+    def test_legacy_data_without_meta_fails_closed(self):
+        """candidates.json 도입 전 데이터: 선택이 지금 후보와 맞는지 검증할 수 없다
+        — 맞다고 가정하지 않는다 (창 규칙이 이미 ±4→±1/±2로 바뀐 뒤라 실제 위험)."""
+        with tempfile.TemporaryDirectory() as temp:
+            out = Path(temp)
+            (out / "picks.json").write_text('{"vg-1": "center"}', encoding="utf-8")
+            self.assertTrue(capture.sync_candidate_meta(out, self.TIMES))
+            self.assertFalse((out / "picks.json").exists())
+
+
 class ExplicitSelectionTests(unittest.TestCase):
     def test_no_pick_never_auto_selects(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -437,8 +481,58 @@ class FeedbackTests(unittest.TestCase):
             self.assertEqual(2, feedback.add(evaluation))
             stats = feedback.summary()
             self.assertEqual(2, stats["total"])
-            self.assertEqual(1, stats["agreed"])
-            self.assertEqual({"center→after": 1}, stats["disagreements"])
+            group = stats["evaluations"]["(pre-batch)"]
+            self.assertEqual(1, group["agreed"])
+            self.assertEqual({"center→after": 1}, group["disagreements"])
+
+    def test_add_accepts_batch_evaluation_and_dedups(self):
+        """배치 평가(records/human_slot) 스키마도 공식 경로로 읽힌다 (외부 리뷰 P1-2).
+
+        실측: recovery-review.json을 add에 넣었더니 '기록됨: 0건'이었다 — 기준선
+        데이터가 공식 경로 밖에 있으면 다음 회귀 비교가 손으로 하는 일이 된다.
+        같은 평가를 두 번 add해도 중복 기록되지 않아야 한다.
+        """
+        from stepkeeper import feedback
+        with tempfile.TemporaryDirectory() as temp:
+            os.environ["STEPKEEPER_DATA"] = temp
+            evaluation = Path(temp) / "batch-review.json"
+            evaluation.write_text(json.dumps({
+                "evaluation_id": "2026-08-02-test",
+                "review_kind": "recovery_rerun",
+                "records": [
+                    {"video_id": "v1", "profile": "generic", "language": "en",
+                     "guide_id": "vg-1", "ai_slot": "center",
+                     "human_slot": "center", "candidate_hit": True},
+                    {"video_id": "v1", "profile": "generic", "language": "en",
+                     "guide_id": "vg-2", "ai_slot": "none",
+                     "human_slot": "before", "candidate_hit": True},
+                ]}), encoding="utf-8")
+            self.assertEqual(2, feedback.add(evaluation))
+            self.assertEqual(0, feedback.add(evaluation))     # 재실행 = 멱등
+            stats = feedback.summary()
+            group = stats["evaluations"]["2026-08-02-test"]
+            self.assertEqual(2, group["total"])
+            self.assertEqual(1, group["agreed"])
+            self.assertEqual(1.0, group["candidate_coverage"])
+
+    def test_summary_keeps_evaluations_apart(self):
+        """회차가 다른 평가는 합산하지 않는다 — 섞인 누적치는 기준선이 아니다."""
+        from stepkeeper import feedback
+        with tempfile.TemporaryDirectory() as temp:
+            os.environ["STEPKEEPER_DATA"] = temp
+            for eval_id, slot in (("round-1", "after"), ("round-2", "center")):
+                path = Path(temp) / f"{eval_id}.json"
+                path.write_text(json.dumps({
+                    "evaluation_id": eval_id,
+                    "records": [{"video_id": "v", "profile": "generic",
+                                 "language": "ko", "guide_id": "vg-1",
+                                 "ai_slot": "center", "human_slot": slot}],
+                }), encoding="utf-8")
+                feedback.add(path)
+            stats = feedback.summary()
+            self.assertEqual(2, stats["total"])
+            self.assertEqual(0, stats["evaluations"]["round-1"]["agreed"])
+            self.assertEqual(1, stats["evaluations"]["round-2"]["agreed"])
 
 
 class NotionTests(unittest.TestCase):
