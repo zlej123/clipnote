@@ -59,33 +59,37 @@ def auto_pick(vid: str, profile: str, language: str, model: str, key: str) -> di
 
     guides = [guide for guide in data.get("visual_guides", [])
               if guide.get("best_visual_timestamp") is not None]
-    parts = [{"text": PROMPT}]
+    # 가이드별 **독립 호출** (외부 리뷰 P2-4): 여러 가이드를 한 요청에 넣었더니
+    # 앞 가이드의 장면 설명이 뒤 가이드의 근거에 새어 들어왔다 (실측 ㄱ20 —
+    # reason이 이전 가이드의 자세를 반복). 토큰은 이미지 수로 정해지므로 총량은
+    # 같고 요청 횟수만 늘어난다.
+    picks = {}
+    reasons = {}
     asked = []
     for guide in guides:
         candidates = {slot: frames / f"{guide['id']}_{slot}.jpg" for slot in SLOTS}
         if not all(path.exists() for path in candidates.values()):
             continue
         asked.append(guide["id"])
-        parts.append({"text": (
-            f"[{guide['id']}] 표현: {guide.get('phrase', '')}\n"
-            f"보여야 할 것: {guide.get('what_to_show', '')}\n"
-            f"가이드: {guide.get('guide_text', '')}")})
+        parts = [{"text": PROMPT},
+                 {"text": (
+                     f"[{guide['id']}] 표현: {guide.get('phrase', '')}\n"
+                     f"보여야 할 것: {guide.get('what_to_show', '')}\n"
+                     f"가이드: {guide.get('guide_text', '')}")}]
         for slot in SLOTS:
             parts.append({"text": f"{guide['id']} 후보 {slot}:"})
             parts.append({"inline_data": {
                 "mime_type": "image/jpeg",
                 "data": base64.b64encode(candidates[slot].read_bytes()).decode(),
             }})
+        response = generate_json(parts, model, key, PICK_SCHEMA)
+        for item in response.get("picks", []):
+            if item.get("guide_id") == guide["id"] \
+                    and item.get("slot") in (*SLOTS, "none"):
+                picks[item["guide_id"]] = item["slot"]
+                reasons[item["guide_id"]] = item.get("reason", "")
     if not asked:
         raise FileNotFoundError(f"후보 프레임 없음: {frames} (capture를 먼저 실행)")
-
-    response = generate_json(parts, model, key, PICK_SCHEMA)
-    picks = {}
-    reasons = {}
-    for item in response.get("picks", []):
-        if item.get("guide_id") in asked and item.get("slot") in (*SLOTS, "none"):
-            picks[item["guide_id"]] = item["slot"]
-            reasons[item["guide_id"]] = item.get("reason", "")
     for guide_id in asked:  # 모델이 빠뜨린 가이드는 안전하게 링크 폴백
         picks.setdefault(guide_id, "none")
 

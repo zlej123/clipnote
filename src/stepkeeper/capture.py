@@ -100,6 +100,14 @@ def candidate_times(step: dict, guide: dict, duration: int):
         spread = limit
     before = max(0, center - spread)
     after = min(last, center + spread)
+    # 후보가 스텝 경계를 넘으면 이전/다음 단계의 장면이 들어온다 (외부 리뷰 P2-3:
+    # 스텝이 10초에 시작하고 center=10이면 before=9는 이전 단계다). 단 center 자체가
+    # 스텝 범위 밖이면 스텝 정보를 불신하고 클램프하지 않는다 — 모델이 준 center를
+    # 경계로 끌어오면 "가장 잘 보이는 순간"에서 멀어진다.
+    if step and "t_start" in step and "t_end" in step \
+            and step["t_start"] <= center <= step["t_end"]:
+        before = max(before, step["t_start"])
+        after = min(after, step["t_end"])
     return dict(zip(SLOTS, (before, center, after)))
 
 
