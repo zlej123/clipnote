@@ -243,6 +243,36 @@ class CoreContractTests(unittest.TestCase):
                             output_dir(ROOT, "abc", "generic", "ko"))
 
 
+class CandidateTimesTests(unittest.TestCase):
+    """후보는 스텝 경계 안에 머문다 (외부 리뷰 P2-3)."""
+
+    def guide(self, center, gtype="state"):
+        return {"best_visual_timestamp": center, "type": gtype}
+
+    def test_candidates_clamp_to_step_start(self):
+        # 스텝이 10초에 시작하고 center=10이면 before=9는 이전 단계의 장면이다
+        times = capture.candidate_times(
+            {"t_start": 10, "t_end": 30}, self.guide(10), 100)
+        self.assertEqual({"before": 10, "center": 10, "after": 12}, times)
+
+    def test_candidates_clamp_to_step_end(self):
+        times = capture.candidate_times(
+            {"t_start": 0, "t_end": 20}, self.guide(20), 100)
+        self.assertEqual({"before": 18, "center": 20, "after": 20}, times)
+
+    def test_center_outside_step_distrusts_step_boundaries(self):
+        # 모델이 준 center가 스텝 밖이면 스텝 정보를 불신한다 — 경계로 끌어오면
+        # "가장 잘 보이는 순간"에서 멀어진다
+        times = capture.candidate_times(
+            {"t_start": 10, "t_end": 20}, self.guide(40), 100)
+        self.assertEqual({"before": 38, "center": 40, "after": 42}, times)
+
+    def test_action_guides_stay_within_one_second(self):
+        times = capture.candidate_times(
+            {"t_start": 0, "t_end": 20}, self.guide(10, "action"), 100)
+        self.assertEqual({"before": 9, "center": 10, "after": 11}, times)
+
+
 class CandidateMetaTests(unittest.TestCase):
     """재캡처 시 후보 타임스탬프가 달라지면 이전 선택은 거짓말이 된다 (외부 리뷰 P1-1):
     같은 vg-1_center.jpg 파일명이 전혀 다른 장면을 가리키는데 picks/근거가 남는다."""
@@ -458,6 +488,43 @@ class AutoPickTests(unittest.TestCase):
                               return_value={"picks": []}):
                 picks = autopick.auto_pick("vid00000000", "generic", "ko", "m", "k")
             self.assertEqual({"vg-1": "none"}, picks)
+
+    def test_each_guide_gets_an_isolated_request(self):
+        """가이드별 독립 호출 (외부 리뷰 P2-4): 묶음 호출에서는 앞 가이드의 장면이
+        뒤 가이드의 근거에 새어 들어왔다 (실측 ㄱ20). 요청에 다른 가이드가 섞이지
+        않아야 하고, 응답이 다른 가이드를 언급해도 받아들이지 않아야 한다."""
+        from stepkeeper import autopick
+        from stepkeeper.common import analysis_file
+        with tempfile.TemporaryDirectory() as temp:
+            frames = self._seed(Path(temp))
+            source = analysis_file(Path(temp), "vid00000000", "generic", "ko")
+            data = json.loads(source.read_text(encoding="utf-8"))
+            second = dict(data["visual_guides"][0], id="vg-2",
+                          phrase="두 번째 가이드")
+            data["visual_guides"].append(second)
+            source.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+            for slot in ("before", "center", "after"):
+                (frames / f"vg-2_{slot}.jpg").write_bytes(b"\xff\xd8fake2")
+
+            calls = []
+
+            def fake_generate(parts, model, key, schema):
+                text = "\n".join(part.get("text", "") for part in parts)
+                calls.append(text)
+                asked = "vg-1" if "[vg-1]" in text else "vg-2"
+                return {"picks": [
+                    {"guide_id": asked, "slot": "center", "reason": "ok"},
+                    # 다른 가이드를 참칭하는 항목은 무시되어야 한다
+                    {"guide_id": "vg-1" if asked == "vg-2" else "vg-2",
+                     "slot": "after", "reason": "누수"},
+                ]}
+
+            with patch.object(autopick, "generate_json", side_effect=fake_generate):
+                picks = autopick.auto_pick("vid00000000", "generic", "ko", "m", "k")
+            self.assertEqual(2, len(calls))
+            self.assertNotIn("vg-2", calls[0])   # 요청 자체가 격리
+            self.assertNotIn("[vg-1]", calls[1])
+            self.assertEqual({"vg-1": "center", "vg-2": "center"}, picks)
 
 
 class FeedbackTests(unittest.TestCase):
