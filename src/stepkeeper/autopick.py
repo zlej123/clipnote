@@ -45,8 +45,22 @@ PROMPT = """당신은 시각 가이드용 대표 프레임을 고르는 검수�
 각 가이드마다 후보 3장(before/center/after)이 순서대로 첨부됩니다.
 가이드의 '보여야 할 것'이 실제로 가장 명확하게 보이는 후보 하나를 고르세요.
 동작을 보여야 하는 가이드는 동작이 수행되는 중인 순간이 담긴 후보를 고르세요 — 완성된 결과물만 보이는 후보는 그 동작을 보여주지 못한 것입니다.
+가이드가 특정 도구나 재료를 요구하면 그것이 실제로 보이는 후보만 유효합니다 — 어느 후보에도 보이지 않으면 "none"입니다.
 세 장 모두에서 그것이 보이지 않으면 반드시 "none"을 고르세요 — 억지로 고르지 않습니다.
 각 선택에 한 문장 근거(reason)를 답하세요. JSON만 출력합니다."""
+
+VERIFY_SCHEMA = {
+    "type": "object",
+    "required": ["shows"],
+    "properties": {
+        "shows": {"type": "boolean"},
+        "reason": {"type": "string"},
+    },
+}
+
+VERIFY_PROMPT = """당신은 선택된 프레임을 검증하는 검수자입니다.
+아래 '보여야 할 것'이 이 프레임 한 장에 실제로 보이면 shows=true, 아니면 shows=false를 답하세요.
+후하게 보지 않습니다 — 비슷한 장면이 아니라 요구된 그 내용(대상·도구·동작)이 보여야 합니다. JSON만 출력합니다."""
 
 
 def auto_pick(vid: str, profile: str, language: str, model: str, key: str) -> dict:
@@ -88,6 +102,23 @@ def auto_pick(vid: str, profile: str, language: str, model: str, key: str) -> di
                     and item.get("slot") in (*SLOTS, "none"):
                 picks[item["guide_id"]] = item["slot"]
                 reasons[item["guide_id"]] = item.get("reason", "")
+        # 자기 검증 패스: 고른 한 장만 다시 보여 "정말 보이는가"를 묻는다.
+        # 후보 3장을 비교하며 생기는 "그중 제일 낫다" 편향을 끊는 안전망 —
+        # 틀린 사진이 조용히 문서에 들어가는 것이 최악의 실패다 (실측 #6:
+        # 렌치가 어느 후보에도 없는데 center를 골랐다).
+        slot = picks.get(guide["id"])
+        if slot and slot != "none":
+            verify = generate_json([
+                {"text": VERIFY_PROMPT},
+                {"text": f"보여야 할 것: {guide.get('what_to_show', '')}"},
+                {"inline_data": {
+                    "mime_type": "image/jpeg",
+                    "data": base64.b64encode(candidates[slot].read_bytes()).decode(),
+                }},
+            ], model, key, VERIFY_SCHEMA)
+            if not verify.get("shows"):
+                picks[guide["id"]] = "none"
+                reasons[guide["id"]] = verify.get("reason") or "검증 실패: 요구된 내용이 보이지 않음"
     if not asked:
         raise FileNotFoundError(f"후보 프레임 없음: {frames} (capture를 먼저 실행)")
     for guide_id in asked:  # 모델이 빠뜨린 가이드는 안전하게 링크 폴백
