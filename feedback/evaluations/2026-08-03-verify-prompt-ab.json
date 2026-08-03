@@ -1,0 +1,225 @@
+{
+ "evaluation_id": "2026-08-03-verify-prompt-ab",
+ "review_kind": "prompt_ab_test",
+ "note": "A/B of the autopick self-verification prompt against the 34 already-judged rerun-2 guides that received a photo. The shipped (strict) wording rescued 2 wrong photos but discarded 8 correct ones — a net regression from 32/34 to 25/34. The revised wording defaults to keeping the photo and rejects only when the required subject is absent: same 2 rescues, 0 false rejections (33/34). Measured, not assumed: the strict version was already merged and would have shipped.",
+ "variants": {
+  "strict_shipped": {
+   "rescued_wrong_photos": 2,
+   "discarded_correct_photos": 8,
+   "total": 34,
+   "resulting_agreement": "25/34"
+  },
+  "revised_default_keep": {
+   "rescued_wrong_photos": 2,
+   "discarded_correct_photos": 0,
+   "total": 34,
+   "resulting_agreement": "33/34"
+  }
+ },
+ "records": [
+  {
+   "review_number": "#1",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "#4",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "#5",
+   "strict_shows": false,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "#6",
+   "strict_shows": false,
+   "revised_shows": false,
+   "human_kept_photo": false
+  },
+  {
+   "review_number": "#7",
+   "strict_shows": false,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "#8",
+   "strict_shows": false,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "#9",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "#10",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "#11",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "#12",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "#13",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "#14",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "#15",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "#16",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "#17",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ1",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ2",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ3",
+   "strict_shows": false,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ5",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ6",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ7",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ9",
+   "strict_shows": false,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ10",
+   "strict_shows": false,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ11",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ12",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ13",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ14",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ15",
+   "strict_shows": false,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ16",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ17",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ18",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ19",
+   "strict_shows": false,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ20",
+   "strict_shows": true,
+   "revised_shows": true,
+   "human_kept_photo": true
+  },
+  {
+   "review_number": "ㄱ22",
+   "strict_shows": false,
+   "revised_shows": false,
+   "human_kept_photo": false
+  }
+ ]
+}

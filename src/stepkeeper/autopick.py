@@ -59,8 +59,10 @@ VERIFY_SCHEMA = {
 }
 
 VERIFY_PROMPT = """당신은 선택된 프레임을 검증하는 검수자입니다.
-아래 '보여야 할 것'이 이 프레임 한 장에 실제로 보이면 shows=true, 아니면 shows=false를 답하세요.
-후하게 보지 않습니다 — 비슷한 장면이 아니라 요구된 그 내용(대상·도구·동작)이 보여야 합니다. JSON만 출력합니다."""
+아래 '보여야 할 것'과 이 프레임을 비교하세요.
+요구된 대상·도구·동작이 프레임에 **아예 없을 때만** shows=false입니다.
+각도가 아쉽거나 일부가 가려졌거나 동작의 앞뒤 순간이더라도, 그 내용을 알아볼 수 있으면 shows=true입니다.
+이 판정은 문서에 넣을 사진을 버리는 결정이므로, 확신이 없으면 shows=true를 고르세요. JSON만 출력합니다."""
 
 
 def auto_pick(vid: str, profile: str, language: str, model: str, key: str) -> dict:
