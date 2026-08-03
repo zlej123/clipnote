@@ -92,7 +92,7 @@ Two reuse boundaries:
 | REST API server | wraps the modules — see [stepkeeper-server](https://github.com/zlej123/stepkeeper-server) |
 | Desktop app / Python tools / agent skills | import directly (see `skills/stepkeeper/SKILL.md`) |
 | iOS/iPadOS/macOS app | [stepkeeper-apple](https://github.com/zlej123/stepkeeper-apple) — bundles `skill-core/` and calls Gemini directly (no server), with the Python renderer ported to Swift |
-| Browser | [stepkeeper-extension](https://github.com/zlej123/stepkeeper-extension) — captures frames from the YouTube player itself |
+| Browser | [stepkeeper-extension](https://github.com/zlej123/stepkeeper-extension) — captures frames from the YouTube player itself · [Chrome Web Store](https://chromewebstore.google.com/detail/ckgcfpdlfihclbgmigfnniepkeilcgbp) |
 
 Both clients capture frames on their own side (WKWebView / canvas), so neither needs ffmpeg or a
 download step, and the server stays optional. stepkeeper-apple is the fullest reuse of `skill-core/`:

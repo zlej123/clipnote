@@ -103,6 +103,29 @@ def candidate_times(step: dict, guide: dict, duration: int):
     return dict(zip(SLOTS, (before, center, after)))
 
 
+def sync_candidate_meta(out: Path, times: dict) -> bool:
+    """candidates.json에 후보별 타임스탬프를 기록하고, 달라졌으면 선택을 무효화한다.
+
+    창 규칙이나 분석이 바뀌면 같은 "vg-1_center.jpg" 파일명이 전혀 다른 장면을
+    가리키게 된다 — 원인이 무엇이든 결국 타임스탬프 변화로 나타나므로, 이 파일
+    하나와 비교해 어긋나면 picks.json/picks-meta.json을 지운다.
+    반환값: 기존 선택을 무효화했으면 True.
+    """
+    meta = out / "candidates.json"
+    previous = json.loads(meta.read_text(encoding="utf-8")) if meta.exists() else None
+    meta.write_text(json.dumps(times, ensure_ascii=False, indent=2), encoding="utf-8")
+    # 기록이 없으면(candidates.json 도입 전 데이터) 선택이 지금 후보와 맞는지 검증할
+    # 방법이 없다 — 맞다고 가정하지 않고 무효화한다 (fail-closed).
+    if previous == times:
+        return False
+    invalidated = False
+    for stale in (out / "picks.json", out / "picks-meta.json"):
+        if stale.exists():
+            stale.unlink()
+            invalidated = True
+    return invalidated
+
+
 def build_picker(vid: str, profile: str, language: str) -> Path:
     """(Re)generate picker.html from analysis + frames on disk.
 
@@ -235,7 +258,9 @@ def main():
     out = frames_dir(data_root(), vid, args.profile, args.language)
     out.mkdir(parents=True, exist_ok=True)
     # Refresh candidate JPEGs only. Keep picks.json / picks-meta.json so a
-    # re-capture does not wipe AI or human selections (picker re-reads them).
+    # re-capture does not wipe AI or human selections (picker re-reads them) —
+    # unless the candidate timestamps changed, in which case the same "center"
+    # filename would point at a different scene and old picks become lies.
     for stale in list(out.glob("vg-*.jpg")) + [out / "contact-sheet.jpg"]:
         if stale.exists():
             stale.unlink()
@@ -243,12 +268,15 @@ def main():
     steps = {step["id"]: step for step in data.get("steps", [])}
     guides = [guide for guide in data.get("visual_guides", [])
               if guide.get("best_visual_timestamp") is not None]
+    times = {guide["id"]: candidate_times(
+                 steps.get(guide["step_id"], {}), guide, data.get("_duration", 0))
+             for guide in guides}
+    if sync_candidate_meta(out, times):
+        print("후보 타임스탬프가 달라져 기존 선택(picks)을 무효화했습니다 — 다시 선택하세요.")
 
     print(f"[2/3] 시각 가이드 {len(guides)}개 x {len(SLOTS)}장 프레임 추출...")
     for guide in guides:
-        step = steps.get(guide["step_id"], {})
-        for slot, timestamp in candidate_times(
-                step, guide, data.get("_duration", 0)).items():
+        for slot, timestamp in times[guide["id"]].items():
             sh("ffmpeg", "-y", "-loglevel", "error", "-ss", str(timestamp),
                "-i", str(mp4), "-frames:v", "1", "-q:v", "3",
                "-strict", "unofficial", str(out / f"{guide['id']}_{slot}.jpg"))
