@@ -466,13 +466,22 @@ class AutoPickTests(unittest.TestCase):
     def tearDown(self):
         os.environ.pop("STEPKEEPER_DATA", None)
 
+    @staticmethod
+    def _with_verify(pick_response, shows=True, verify_reason=""):
+        """선택 응답 뒤의 자기 검증 호출까지 흉내 내는 side_effect."""
+        def fake(parts, model, key, schema):
+            if "shows" in schema.get("properties", {}):
+                return {"shows": shows, "reason": verify_reason}
+            return pick_response
+        return fake
+
     def test_auto_pick_writes_picks_and_meta(self):
         from stepkeeper import autopick
         with tempfile.TemporaryDirectory() as temp:
             frames = self._seed(Path(temp))
-            with patch.object(autopick, "generate_json", return_value={
+            with patch.object(autopick, "generate_json", side_effect=self._with_verify({
                     "picks": [{"guide_id": "vg-1", "slot": "after",
-                               "reason": "목표 상태가 가장 명확"}]}):
+                               "reason": "목표 상태가 가장 명확"}]})):
                 picks = autopick.auto_pick("vid00000000", "generic", "ko", "m", "k")
             self.assertEqual({"vg-1": "after"}, picks)
             saved = json.loads((frames / "picks.json").read_text(encoding="utf-8"))
@@ -485,9 +494,27 @@ class AutoPickTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             self._seed(Path(temp))
             with patch.object(autopick, "generate_json",
-                              return_value={"picks": []}):
+                              return_value={"picks": []}) as mock:
                 picks = autopick.auto_pick("vid00000000", "generic", "ko", "m", "k")
             self.assertEqual({"vg-1": "none"}, picks)
+            self.assertEqual(1, mock.call_count)   # none에는 검증 호출도 없다
+
+    def test_verification_rejects_pick_and_falls_back_to_none(self):
+        """자기 검증 패스: 고른 한 장을 다시 보여 '정말 보이는가'를 묻는다.
+
+        실측 #6 — 렌치가 어느 후보에도 없는데 '그중 제일 나은' center를 골랐다.
+        후보 비교 편향을 끊으려면 선택된 프레임 단독으로 재검증해야 한다.
+        """
+        from stepkeeper import autopick
+        with tempfile.TemporaryDirectory() as temp:
+            frames = self._seed(Path(temp))
+            with patch.object(autopick, "generate_json", side_effect=self._with_verify(
+                    {"picks": [{"guide_id": "vg-1", "slot": "center", "reason": "제일 낫다"}]},
+                    shows=False, verify_reason="렌치가 보이지 않음")):
+                picks = autopick.auto_pick("vid00000000", "generic", "ko", "m", "k")
+            self.assertEqual({"vg-1": "none"}, picks)
+            meta = json.loads((frames / "picks-meta.json").read_text(encoding="utf-8"))
+            self.assertEqual("렌치가 보이지 않음", meta["reasons"]["vg-1"])
 
     def test_each_guide_gets_an_isolated_request(self):
         """가이드별 독립 호출 (외부 리뷰 P2-4): 묶음 호출에서는 앞 가이드의 장면이
@@ -510,6 +537,8 @@ class AutoPickTests(unittest.TestCase):
 
             def fake_generate(parts, model, key, schema):
                 text = "\n".join(part.get("text", "") for part in parts)
+                if "shows" in schema.get("properties", {}):
+                    return {"shows": True}
                 calls.append(text)
                 asked = "vg-1" if "[vg-1]" in text else "vg-2"
                 return {"picks": [
