@@ -843,5 +843,169 @@
         }
       }
     ]
+  },
+  "en_holdout": {
+    "suite": "holdout",
+    "profile": "generic",
+    "language": "en",
+    "_comment": "영어 소스 영상의 영어 출력 홀드아웃 — en_output(스모크)과 겹치지 않게 유지할 것. 품질 측정 전용이며 프롬프트 튜닝에 쓰지 않는다.",
+    "videos": [
+      {
+        "url": "https://www.youtube.com/watch?v=qoHnwOHLiMk",
+        "profile": "recipe",
+        "note": "[recipe] EN holdout: carbonara (emulsion state, doneness)",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=Xx7sxWI9FNI",
+        "profile": "recipe",
+        "note": "[recipe] EN holdout: perfect rice (water ratio, texture)",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=Cd5Z8hmcb10",
+        "profile": "generic",
+        "note": "[craft] EN holdout: origami masu box (fold states)",
+        "strata": {
+          "length": "short",
+          "audio": "silent",
+          "captions": "none",
+          "editing": "continuous",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=LLAWJwtlHVo",
+        "profile": "generic",
+        "note": "[craft] EN holdout: knitting basics (stitch shapes)",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "continuous",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=PLGmTzEGSIY",
+        "profile": "generic",
+        "note": "[diy] EN holdout: drywall patch (Ask This Old House)",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "manual",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=17awCvAA7Q0",
+        "profile": "generic",
+        "note": "[diy] EN holdout: california patch (technique detail)",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=xJyx2VZY-Is",
+        "profile": "generic",
+        "note": "[beauty] EN holdout: winged eyeliner (angle, thickness)",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=u36P_z64i4M",
+        "profile": "generic",
+        "note": "[beauty] EN holdout: no-foundation makeup (product placement)",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=wRAtVLgj-wU",
+        "profile": "generic",
+        "note": "[fitness] EN holdout: morning yoga (pose alignment)",
+        "strata": {
+          "length": "medium",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "continuous",
+          "framing": "full-body",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=itJE4neqDJw",
+        "profile": "generic",
+        "note": "[fitness] EN holdout: daily stretch (hold positions)",
+        "strata": {
+          "length": "medium",
+          "audio": "silent",
+          "captions": "none",
+          "editing": "continuous",
+          "framing": "full-body",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=F9WgF1K_K2g",
+        "profile": "generic",
+        "note": "[software] EN holdout: pivot tables (screen recording, small UI text)",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "continuous",
+          "framing": "screen",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=WxSYc5afjDY",
+        "profile": "generic",
+        "note": "[software] EN holdout: Figma auto layout (screen recording)",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "continuous",
+          "framing": "screen",
+          "source_language": "en"
+        }
+      }
+    ]
   }
 }
