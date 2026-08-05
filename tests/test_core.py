@@ -273,6 +273,31 @@ class CandidateTimesTests(unittest.TestCase):
         self.assertEqual({"before": 9, "center": 10, "after": 11}, times)
 
 
+class CaptureHeightTests(unittest.TestCase):
+    """화면 녹화는 정보가 작은 UI 텍스트에 있어 480p에서 판독이 안 된다 (실측: 홀드아웃
+    119건 중 '세 후보 모두 부적합' 5건의 절반이 software 도메인의 해상도 문제였다)."""
+
+    def tearDown(self):
+        os.environ.pop("STEPKEEPER_CAPTURE_HEIGHT", None)
+
+    def test_default_stays_480(self):
+        self.assertEqual(480, capture.capture_height({"category": "요리"}))
+        self.assertEqual(480, capture.capture_height(None))
+        self.assertEqual(480, capture.capture_height({}))
+
+    def test_screen_content_escalates_in_every_output_language(self):
+        # 카테고리는 모델이 출력 언어로 쓴다 — 한 언어만 보면 나머지가 조용히 새어나간다
+        for category in ("소프트웨어", "Software", "ソフトウェア"):
+            self.assertEqual(1080, capture.capture_height({"category": category}), category)
+
+    def test_env_override_wins(self):
+        os.environ["STEPKEEPER_CAPTURE_HEIGHT"] = "720"
+        self.assertEqual(720, capture.capture_height({"category": "소프트웨어"}))
+        self.assertEqual(720, capture.capture_height({"category": "요리"}))
+        os.environ["STEPKEEPER_CAPTURE_HEIGHT"] = "이상한값"
+        self.assertEqual(480, capture.capture_height({"category": "요리"}))
+
+
 class CandidateMetaTests(unittest.TestCase):
     """재캡처 시 후보 타임스탬프가 달라지면 이전 선택은 거짓말이 된다 (외부 리뷰 P1-1):
     같은 vg-1_center.jpg 파일명이 전혀 다른 장면을 가리키는데 picks/근거가 남는다."""
