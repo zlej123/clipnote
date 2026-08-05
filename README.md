@@ -66,6 +66,10 @@ python -m stepkeeper.feedback add semantic-evaluation.json   # accumulates accur
 
 Artifacts are written under the current directory (override with `STEPKEEPER_DATA`).
 
+Frames are captured from a 480p download. Screen recordings are pulled at 1080p instead — their
+information lives in small UI text that 480p destroys, and static screen content compresses well
+enough that the bigger file costs little. Override either with `STEPKEEPER_CAPTURE_HEIGHT`.
+
 ## Note app export
 
 | Target | How | Status |

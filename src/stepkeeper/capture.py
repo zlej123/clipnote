@@ -13,6 +13,7 @@ per guide — that file doubles as the auto-pick feedback record.
 import argparse
 import html
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -43,21 +44,45 @@ def playable(path: Path) -> bool:
     return result.returncode == 0 and not result.stderr.strip()
 
 
-def ensure_video(vid: str) -> Path:
-    """480p 영상을 받아 두고 재사용한다. **받은 파일이 재생 가능한지 확인한다.**
+# 화면 녹화 영상은 정보가 작은 UI 텍스트에 담겨 있어 480p에서 판독이 안 된다
+# (실측: Figma 재생 버튼·플러그인 검색어·엑셀 셀이 세 후보 모두 못 쓰는 후보가 됐다).
+# 다행히 화면 녹화는 정적이라 압축이 잘 먹어, 고해상도로 받아도 파일이 크게 늘지 않는다.
+DEFAULT_CAPTURE_HEIGHT = 480
+SCREEN_CAPTURE_HEIGHT = 1080
+# 카테고리는 모델이 출력 언어로 쓴다 — 언어별 표기를 모두 적어야 한다.
+SCREEN_CATEGORIES = ("소프트웨어", "software", "ソフトウェア")
+
+
+def capture_height(data: dict | None = None) -> int:
+    """받을 영상 높이. STEPKEEPER_CAPTURE_HEIGHT가 있으면 그 값이 우선한다."""
+    override = os.environ.get("STEPKEEPER_CAPTURE_HEIGHT")
+    if override and override.isdigit():
+        return int(override)
+    category = ((data or {}).get("category") or "").strip().lower()
+    if any(word in category for word in SCREEN_CATEGORIES):
+        return SCREEN_CAPTURE_HEIGHT
+    return DEFAULT_CAPTURE_HEIGHT
+
+
+def ensure_video(vid: str, height: int = DEFAULT_CAPTURE_HEIGHT) -> Path:
+    """영상을 받아 두고 재사용한다. **받은 파일이 재생 가능한지 확인한다.**
 
     yt-dlp는 포맷을 못 가져와도 exit 0으로 끝나며 쓸 수 없는 조각 파일을 남길 수 있다
     (실측: 48KB 파일 → ffmpeg "Invalid data found"). 그 파일이 캐시로 남으면 이후 실행이
     영원히 같은 에러로 죽는다 — 검증에 실패하면 지우고 원인을 알려주며 멈춘다.
+
+    해상도가 다르면 캐시를 재사용하지 않는다 — 파일명에 높이를 넣어 구분한다.
     """
-    mp4 = data_root() / "work" / f"{vid}.mp4"
+    root = data_root() / "work"
+    mp4 = root / (f"{vid}.mp4" if height == DEFAULT_CAPTURE_HEIGHT
+                  else f"{vid}.{height}p.mp4")
     if mp4.exists() and not playable(mp4):
         print("[1/3] 캐시된 영상이 손상됨 — 지우고 다시 받습니다")
         mp4.unlink()
     if not mp4.exists():
-        print("[1/3] 480p 영상 다운로드...")
+        print(f"[1/3] {height}p 영상 다운로드...")
         sh(sys.executable, "-m", "yt_dlp", "-f",
-           "bv*[height<=480]+ba/b[height<=480]/b",
+           f"bv*[height<={height}]+ba/b[height<={height}]/b",
            "--merge-output-format", "mp4", "-o", str(mp4),
            f"https://www.youtube.com/watch?v={vid}")
         if not mp4.exists() or not playable(mp4):
@@ -261,7 +286,7 @@ def main():
     if not source.exists():
         sys.exit(f"분석 결과 없음: {source}")
     data = json.loads(source.read_text(encoding="utf-8"))
-    mp4 = ensure_video(vid)
+    mp4 = ensure_video(vid, capture_height(data))
 
     out = frames_dir(data_root(), vid, args.profile, args.language)
     out.mkdir(parents=True, exist_ok=True)
