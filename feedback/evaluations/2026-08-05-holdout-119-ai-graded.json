@@ -1,0 +1,1854 @@
+{
+ "evaluation_id": "2026-08-05-holdout-119",
+ "review_kind": "holdout_batch_AI_GRADED",
+ "judge": {
+  "who": "Claude (an AI), not a human reviewer",
+  "why_it_matters": "Every number here is one AI grading another AI's output. It is NOT the human ground truth the earlier evaluations used, and must not be quoted as such. Treat it as a provisional pass to be confirmed by the human review UI.",
+  "independence": "Partial. The grader (Claude) is a different model from the pipeline (gemini-flash-lite-latest), so it is not self-grading, but both are vision language models and may share failure modes on the same images.",
+  "known_biases": [
+   "Generous when the three candidates are near-identical — all were usually marked usable, which inflates correct_photo.",
+   "Graded from 5-guide contact sheets at reduced resolution, so fine detail (single stitches, elbow-crease direction, small UI text) could not always be resolved.",
+   "Low-confidence guides flagged in low_confidence_review_numbers below."
+  ],
+  "method": "Judged all three candidates per guide (usable / not usable), not slot-exact agreement — per the 2026-08-03 finding that slot-exact agreement penalises benign non-determinism. See 2026-08-03-selection-stability.json."
+ },
+ "batch": {
+  "videos_planned": 45,
+  "videos_succeeded": 39,
+  "videos_failed": "6 (yt-dlp cannot fetch formats in this environment: 403 / header-only download)",
+  "guides": 119,
+  "held_out": "39 of 45 videos are unseen; 6 are the Korean-language variant of videos used in the 2026-08-02 batches and are excluded from the fresh_videos_only tally."
+ },
+ "metrics": {
+  "all": {
+   "guides": 119,
+   "correct_photo": 104,
+   "correct_link_fallback": 5,
+   "missed_usable_frame": 8,
+   "wrong_photo": 2,
+   "wrong_photo_rate": 0.0168,
+   "accuracy_of_delivered_photos": 0.9811,
+   "no_usable_candidate": 5
+  },
+  "fresh_videos_only": {
+   "guides": 103,
+   "correct_photo": 92,
+   "correct_link_fallback": 3,
+   "missed_usable_frame": 7,
+   "wrong_photo": 1,
+   "wrong_photo_rate": 0.0097,
+   "accuracy_of_delivered_photos": 0.9892,
+   "no_usable_candidate": 3
+  }
+ },
+ "low_confidence_review_numbers": [
+  "26",
+  "28",
+  "92",
+  "109",
+  "116"
+ ],
+ "findings": {
+  "headline": "Wrong photos are now rare: 2/119 overall, 1/103 on fresh videos. The dominant remaining loss is not mis-picking but giving up — 8 guides (6.7%) fell back to a link although a usable frame existed.",
+  "next_lever": "Selection is still too conservative about committing to a frame. The softened verification prompt fixed over-rejection at the verify step; the pick step itself is what now abstains.",
+  "capture_limit": "5 guides (4.2%) had no usable candidate at all. Three are software screen-recordings whose UI text is unreadable at 480p — the same capture-resolution finding as review #18 in the 2026-08-02 batch."
+ },
+ "records": [
+  {
+   "review_number": "1",
+   "video_id": "TA3Uo3a9674",
+   "guide_id": "vg-1",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": false,
+   "grader_note": "세 장 모두 멸치를 손으로 훑는 동작이 보임"
+  },
+  {
+   "review_number": "2",
+   "video_id": "TA3Uo3a9674",
+   "guide_id": "vg-2",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": false,
+   "grader_note": "before는 인물 전신 롱샷이라 국물 상태 판독 불가"
+  },
+  {
+   "review_number": "3",
+   "video_id": "PFDElc5sfSM",
+   "guide_id": "vg-1",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": false,
+   "grader_note": "before는 거리가 멀어 결 방향·칼날 각도 확인 불가"
+  },
+  {
+   "review_number": "4",
+   "video_id": "PFDElc5sfSM",
+   "guide_id": "vg-2",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": false,
+   "grader_note": "before/center에는 숟가락 자체가 없음"
+  },
+  {
+   "review_number": "5",
+   "video_id": "PFDElc5sfSM",
+   "guide_id": "vg-3",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before"
+   ],
+   "outcome": "wrong_photo",
+   "fresh_video": false,
+   "grader_note": "before만 집게로 세워 잡은 게 보임. center/after는 탑다운이라 지방 측면이 바닥인지 판별 불가"
+  },
+  {
+   "review_number": "6",
+   "video_id": "d8RMLGZBuYs",
+   "guide_id": "vg-1",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "none",
+   "usable_candidates": [],
+   "outcome": "correct_link_fallback",
+   "fresh_video": true,
+   "grader_note": "숟가락에 뜬 춘장의 양이 보이는 장면이 없음 — AI의 none 판정과 일치"
+  },
+  {
+   "review_number": "7",
+   "video_id": "d8RMLGZBuYs",
+   "guide_id": "vg-2",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "before",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 가래떡 크기·양 확인 가능"
+  },
+  {
+   "review_number": "8",
+   "video_id": "d8RMLGZBuYs",
+   "guide_id": "vg-3",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "before",
+   "usable_candidates": [
+    "before"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before만 물이 부어지는 순간. center/after는 붓기 전/후 정지 상태"
+  },
+  {
+   "review_number": "9",
+   "video_id": "d8RMLGZBuYs",
+   "guide_id": "vg-4",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "after는 이미 녹은 결과 — 올리는 동작 아님"
+  },
+  {
+   "review_number": "10",
+   "video_id": "d8RMLGZBuYs",
+   "guide_id": "vg-5",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 밥그릇 없음, after는 이미 부은 결과"
+  },
+  {
+   "review_number": "11",
+   "video_id": "IAgmW_gTxls",
+   "guide_id": "vg-1",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": false,
+   "grader_note": "before는 흐릿, center는 손이 달걀물을 가림"
+  },
+  {
+   "review_number": "12",
+   "video_id": "IAgmW_gTxls",
+   "guide_id": "vg-2",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "before",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": false,
+   "grader_note": "세 장 모두 스패출러가 달걀에 닿아 미는 중"
+  },
+  {
+   "review_number": "13",
+   "video_id": "IAgmW_gTxls",
+   "guide_id": "vg-3",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": false,
+   "grader_note": "세 장 모두 몽글한 최종 질감이 보임"
+  },
+  {
+   "review_number": "14",
+   "video_id": "60anIrLje-E",
+   "guide_id": "vg-1",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 롱샷, center는 뭉친 상태만(도구 없음)"
+  },
+  {
+   "review_number": "15",
+   "video_id": "60anIrLje-E",
+   "guide_id": "vg-2",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 롱샷이라 국물 색 판독 불가"
+  },
+  {
+   "review_number": "16",
+   "video_id": "60anIrLje-E",
+   "guide_id": "vg-3",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "none",
+   "usable_candidates": [
+    "before",
+    "after"
+   ],
+   "outcome": "missed_usable_frame",
+   "fresh_video": true,
+   "grader_note": "AI는 none이라 했지만 before에 두부 두께, after에 배열된 모양이 뚜렷 — 놓친 케이스"
+  },
+  {
+   "review_number": "17",
+   "video_id": "_s-RMTH78a8",
+   "guide_id": "vg-1",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 아직 묽은 상태라 자국이 남지 않음"
+  },
+  {
+   "review_number": "18",
+   "video_id": "_s-RMTH78a8",
+   "guide_id": "vg-2",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 도구를 들어 올리지 않아 흐르는 되기가 안 보임"
+  },
+  {
+   "review_number": "19",
+   "video_id": "_s-RMTH78a8",
+   "guide_id": "vg-3",
+   "domain": "recipe",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before에는 손이 없음"
+  },
+  {
+   "review_number": "20",
+   "video_id": "GC_Szxdqh2Y",
+   "guide_id": "vg-1",
+   "domain": "craft",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": false,
+   "grader_note": "세 장이 사실상 같은 접힌 상태"
+  },
+  {
+   "review_number": "21",
+   "video_id": "GC_Szxdqh2Y",
+   "guide_id": "vg-2",
+   "domain": "craft",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": false,
+   "grader_note": "before는 목 부분이 아직 안 올라옴"
+  },
+  {
+   "review_number": "22",
+   "video_id": "dMWv-60NQq4",
+   "guide_id": "vg-1",
+   "domain": "craft",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 주머니를 벌리는 동작 중"
+  },
+  {
+   "review_number": "23",
+   "video_id": "dMWv-60NQq4",
+   "guide_id": "vg-2",
+   "domain": "craft",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 레이어를 당기는 과정"
+  },
+  {
+   "review_number": "24",
+   "video_id": "dMWv-60NQq4",
+   "guide_id": "vg-3",
+   "domain": "craft",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 머리 끝을 손가락으로 꺾는 중"
+  },
+  {
+   "review_number": "25",
+   "video_id": "T6Dput3ZCaQ",
+   "guide_id": "vg-1",
+   "domain": "craft",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 실에 가려 코 수를 셀 수 없음"
+  },
+  {
+   "review_number": "26",
+   "video_id": "T6Dput3ZCaQ",
+   "guide_id": "vg-2",
+   "domain": "craft",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 바늘 위 코가 보임 (요오버 구멍 자체는 해상도상 판별 어려움 — 낮은 확신)"
+  },
+  {
+   "review_number": "27",
+   "video_id": "T6Dput3ZCaQ",
+   "guide_id": "vg-3",
+   "domain": "craft",
+   "language": "ko",
+   "ai_slot": "before",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 바늘이 코를 통과하는 구간"
+  },
+  {
+   "review_number": "28",
+   "video_id": "T6Dput3ZCaQ",
+   "guide_id": "vg-4",
+   "domain": "craft",
+   "language": "ko",
+   "ai_slot": "before",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 거의 동일 — 코막음 동작 구간 (낮은 확신)"
+  },
+  {
+   "review_number": "29",
+   "video_id": "Egp4NRhlMDg",
+   "guide_id": "vg-1",
+   "domain": "craft",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 실을 바늘에 감는 손동작"
+  },
+  {
+   "review_number": "30",
+   "video_id": "Egp4NRhlMDg",
+   "guide_id": "vg-2",
+   "domain": "craft",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 루프를 빼내는 구간"
+  },
+  {
+   "review_number": "31",
+   "video_id": "Q9NqGd7464U",
+   "guide_id": "vg-1",
+   "domain": "craft",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 아직 통과 전 — 루프만 만들어진 상태"
+  },
+  {
+   "review_number": "32",
+   "video_id": "Q9NqGd7464U",
+   "guide_id": "vg-2",
+   "domain": "craft",
+   "language": "ko",
+   "ai_slot": "before",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 손가락으로 로프를 감아 돌리는 중"
+  },
+  {
+   "review_number": "33",
+   "video_id": "evCGIAIttd4",
+   "guide_id": "vg-1",
+   "domain": "craft",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 색이 거의 안 묻어 넓은 면적 채색이 아님"
+  },
+  {
+   "review_number": "34",
+   "video_id": "36TMaO1zkCo",
+   "guide_id": "vg-1",
+   "domain": "craft",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 자가 없고 center는 7cm 지시 도구가 없음"
+  },
+  {
+   "review_number": "35",
+   "video_id": "36TMaO1zkCo",
+   "guide_id": "vg-2",
+   "domain": "craft",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 자가 화면에 없음"
+  },
+  {
+   "review_number": "36",
+   "video_id": "36TMaO1zkCo",
+   "guide_id": "vg-3",
+   "domain": "craft",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before에는 라이터가 아직 없음"
+  },
+  {
+   "review_number": "37",
+   "video_id": "NBKoUmYCoW0",
+   "guide_id": "vg-1",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "after만 캠락이 평평하게 잠긴 상태. before/center는 잠기기 전"
+  },
+  {
+   "review_number": "38",
+   "video_id": "NBKoUmYCoW0",
+   "guide_id": "vg-2",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before에는 망치·핀이 없음"
+  },
+  {
+   "review_number": "39",
+   "video_id": "NBKoUmYCoW0",
+   "guide_id": "vg-3",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "none",
+   "usable_candidates": [
+    "after"
+   ],
+   "outcome": "missed_usable_frame",
+   "fresh_video": true,
+   "grader_note": "AI는 none이라 했지만 after에서 육각 렌치가 구멍에 들어가 있음 — 놓친 케이스"
+  },
+  {
+   "review_number": "40",
+   "video_id": "NBKoUmYCoW0",
+   "guide_id": "vg-4",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "before",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 문짝-프레임 틈새와 경첩 확대가 보임"
+  },
+  {
+   "review_number": "41",
+   "video_id": "lRbX4Zi-V7s",
+   "guide_id": "vg-1",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 부품이 작게 흩어져 C 홈 형태 판별 불가"
+  },
+  {
+   "review_number": "42",
+   "video_id": "lRbX4Zi-V7s",
+   "guide_id": "vg-2",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 화살표가 손에 가림"
+  },
+  {
+   "review_number": "43",
+   "video_id": "lRbX4Zi-V7s",
+   "guide_id": "vg-3",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "after는 못이 아니라 패널 모서리를 가리킴"
+  },
+  {
+   "review_number": "44",
+   "video_id": "lRbX4Zi-V7s",
+   "guide_id": "vg-4",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 문 앞 롱샷이라 나사가 안 보임"
+  },
+  {
+   "review_number": "45",
+   "video_id": "4cavloun3cc",
+   "guide_id": "vg-1",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "before",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 대각선으로 당긴 줄자가 보임"
+  },
+  {
+   "review_number": "46",
+   "video_id": "4cavloun3cc",
+   "guide_id": "vg-2",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "none",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "missed_usable_frame",
+   "fresh_video": true,
+   "grader_note": "AI는 none이라 했지만 center/after에 몰딩 끝단이 보임 — 놓친 케이스(확신 중간)"
+  },
+  {
+   "review_number": "47",
+   "video_id": "4cavloun3cc",
+   "guide_id": "vg-3",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 흐릿, after는 초점이 완전히 나감"
+  },
+  {
+   "review_number": "48",
+   "video_id": "txJiZYraM40",
+   "guide_id": "vg-1",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "before",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 플라이어가 스피곳을 물고 있음"
+  },
+  {
+   "review_number": "49",
+   "video_id": "txJiZYraM40",
+   "guide_id": "vg-2",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 와셔가 너무 작게 잡힘 (균열 자체는 세 장 다 판별 어려움)"
+  },
+  {
+   "review_number": "50",
+   "video_id": "txJiZYraM40",
+   "guide_id": "vg-3",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 와셔 크기·두께 비교 가능"
+  },
+  {
+   "review_number": "51",
+   "video_id": "Z05eyAnY7Ek",
+   "guide_id": "vg-1",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "after"
+   ],
+   "outcome": "wrong_photo",
+   "fresh_video": true,
+   "grader_note": "before/center는 거의 빈 벽 — 퍼티 나이프가 화면에 없음. AI가 center를 고른 건 잘못"
+  },
+  {
+   "review_number": "52",
+   "video_id": "Z05eyAnY7Ek",
+   "guide_id": "vg-2",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 테이프를 들고 접근하는 단계"
+  },
+  {
+   "review_number": "53",
+   "video_id": "Z05eyAnY7Ek",
+   "guide_id": "vg-3",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "before",
+   "usable_candidates": [
+    "before",
+    "center"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "after는 작업에서 물러난 상태 (카운터싱크 깊이는 롱샷이라 세 장 다 판별 불가)"
+  },
+  {
+   "review_number": "54",
+   "video_id": "Z05eyAnY7Ek",
+   "guide_id": "vg-4",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 퍼티 나이프로 스패클을 바르는 중"
+  },
+  {
+   "review_number": "55",
+   "video_id": "e1TPyTpke9E",
+   "guide_id": "vg-1",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 페인트 병 라벨·뚜껑이 보임"
+  },
+  {
+   "review_number": "56",
+   "video_id": "e1TPyTpke9E",
+   "guide_id": "vg-2",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 조각 수 라벨이 읽힘"
+  },
+  {
+   "review_number": "57",
+   "video_id": "e1TPyTpke9E",
+   "guide_id": "vg-3",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "before",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "center는 문구가 손·각도에 가림"
+  },
+  {
+   "review_number": "58",
+   "video_id": "Ii-3RorobvU",
+   "guide_id": "vg-1",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "before",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 탭을 당기는 동작"
+  },
+  {
+   "review_number": "59",
+   "video_id": "Ii-3RorobvU",
+   "guide_id": "vg-2",
+   "domain": "diy",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 헤라로 스파클을 바르는 중"
+  },
+  {
+   "review_number": "60",
+   "video_id": "VomFLbzlOKY",
+   "guide_id": "vg-1",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 쿠션을 들고만 있고 바르지 않음"
+  },
+  {
+   "review_number": "61",
+   "video_id": "VomFLbzlOKY",
+   "guide_id": "vg-2",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 퍼프가 얼굴에 닿기 전"
+  },
+  {
+   "review_number": "62",
+   "video_id": "VomFLbzlOKY",
+   "guide_id": "vg-3",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 브러시가 눈두덩에 닿아 있음"
+  },
+  {
+   "review_number": "63",
+   "video_id": "VomFLbzlOKY",
+   "guide_id": "vg-4",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 눈꼬리 블렌딩 중"
+  },
+  {
+   "review_number": "64",
+   "video_id": "VomFLbzlOKY",
+   "guide_id": "vg-5",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 입술 중앙 도포·펴 바르기"
+  },
+  {
+   "review_number": "65",
+   "video_id": "miczaXlOJ5k",
+   "guide_id": "vg-1",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 얼굴의 파운데이션 점·선이 보임"
+  },
+  {
+   "review_number": "66",
+   "video_id": "miczaXlOJ5k",
+   "guide_id": "vg-2",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 스펀지로 블렌딩 중 — 점 찍는 단계 아님"
+  },
+  {
+   "review_number": "67",
+   "video_id": "miczaXlOJ5k",
+   "guide_id": "vg-3",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 브러시 작업 중, 퍼프는 손에만"
+  },
+  {
+   "review_number": "68",
+   "video_id": "miczaXlOJ5k",
+   "guide_id": "vg-4",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 브론저 브러시가 광대·턱 라인에 닿음"
+  },
+  {
+   "review_number": "69",
+   "video_id": "miczaXlOJ5k",
+   "guide_id": "vg-5",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 라이너가 입술 외곽에 닿음"
+  },
+  {
+   "review_number": "70",
+   "video_id": "M5cyJIT1liY",
+   "guide_id": "vg-1",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 넓은 화각에 스펀지 — 점 크기 판별 불가"
+  },
+  {
+   "review_number": "71",
+   "video_id": "M5cyJIT1liY",
+   "guide_id": "vg-2",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "after는 손이 빠진 결과 컷"
+  },
+  {
+   "review_number": "72",
+   "video_id": "M5cyJIT1liY",
+   "guide_id": "vg-3",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 파우더 통을 보여줄 뿐 도포 아님"
+  },
+  {
+   "review_number": "73",
+   "video_id": "M5cyJIT1liY",
+   "guide_id": "vg-4",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 손가락이 눈두덩 경계를 문지름"
+  },
+  {
+   "review_number": "74",
+   "video_id": "M5cyJIT1liY",
+   "guide_id": "vg-5",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 마스카라를 들고만 있음"
+  },
+  {
+   "review_number": "75",
+   "video_id": "VX6Gu1TVjsg",
+   "guide_id": "vg-1",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 말하는 장면 — 도포 위치 안 보임"
+  },
+  {
+   "review_number": "76",
+   "video_id": "VX6Gu1TVjsg",
+   "guide_id": "vg-2",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "before",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 펜슬이 눈썹에 닿음"
+  },
+  {
+   "review_number": "77",
+   "video_id": "VX6Gu1TVjsg",
+   "guide_id": "vg-3",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "none",
+   "usable_candidates": [
+    "center"
+   ],
+   "outcome": "missed_usable_frame",
+   "fresh_video": true,
+   "grader_note": "AI는 none이라 했지만 center에 손등 블러시와 펴 바르는 손이 뚜렷 — 놓친 케이스"
+  },
+  {
+   "review_number": "78",
+   "video_id": "htZPCZVaAiM",
+   "guide_id": "vg-1",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 스펀지가 손톱에 닿는 두드림 동작"
+  },
+  {
+   "review_number": "79",
+   "video_id": "htZPCZVaAiM",
+   "guide_id": "vg-2",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before/center에는 이쑤시개가 화면에 없음"
+  },
+  {
+   "review_number": "80",
+   "video_id": "6N04TPbpDnM",
+   "guide_id": "vg-1",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "before",
+   "usable_candidates": [
+    "before",
+    "center"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "after는 이미 완성된 꽃잎 — 쓸어내리는 과정 아님"
+  },
+  {
+   "review_number": "81",
+   "video_id": "6N04TPbpDnM",
+   "guide_id": "vg-2",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 호일 전 민 네일"
+  },
+  {
+   "review_number": "82",
+   "video_id": "6N04TPbpDnM",
+   "guide_id": "vg-3",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 경계 그라데이션과 브러시가 보임"
+  },
+  {
+   "review_number": "83",
+   "video_id": "6N04TPbpDnM",
+   "guide_id": "vg-4",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before/center는 점만 떨어뜨린 상태 — 섞는 과정 아님"
+  },
+  {
+   "review_number": "84",
+   "video_id": "6N04TPbpDnM",
+   "guide_id": "vg-5",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before/center는 선이 1~2개뿐이라 '밀도'를 못 보여줌"
+  },
+  {
+   "review_number": "85",
+   "video_id": "8aIsR557hsA",
+   "guide_id": "vg-1",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 섹션을 잡기 전"
+  },
+  {
+   "review_number": "86",
+   "video_id": "8aIsR557hsA",
+   "guide_id": "vg-2",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 이마 삼각 섹션을 잡는 손과 자막이 보임"
+  },
+  {
+   "review_number": "87",
+   "video_id": "8aIsR557hsA",
+   "guide_id": "vg-3",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before에는 아이론이 없음"
+  },
+  {
+   "review_number": "88",
+   "video_id": "8aIsR557hsA",
+   "guide_id": "vg-4",
+   "domain": "beauty",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 아직 섹션을 묶기 전"
+  },
+  {
+   "review_number": "89",
+   "video_id": "v7AYKMP6rOE",
+   "guide_id": "vg-1",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 앉은 자세 — 테이블탑 아님"
+  },
+  {
+   "review_number": "90",
+   "video_id": "v7AYKMP6rOE",
+   "guide_id": "vg-2",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 전사 자세 발 간격이 측면으로 보임"
+  },
+  {
+   "review_number": "91",
+   "video_id": "0eJoUIBhLkE",
+   "guide_id": "vg-1",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 네발 자세 (캣/카우 포함)"
+  },
+  {
+   "review_number": "92",
+   "video_id": "0eJoUIBhLkE",
+   "guide_id": "vg-2",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "none",
+   "usable_candidates": [],
+   "outcome": "correct_link_fallback",
+   "fresh_video": true,
+   "grader_note": "팔꿈치 주름 방향은 세 장 어디서도 판별 불가 — AI의 none과 일치"
+  },
+  {
+   "review_number": "93",
+   "video_id": "0eJoUIBhLkE",
+   "guide_id": "vg-3",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 차투랑가 하강 자세"
+  },
+  {
+   "review_number": "94",
+   "video_id": "RVTvOh1jD00",
+   "guide_id": "vg-1",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 GO 화면 정지 자세"
+  },
+  {
+   "review_number": "95",
+   "video_id": "RVTvOh1jD00",
+   "guide_id": "vg-2",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "none",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "missed_usable_frame",
+   "fresh_video": true,
+   "grader_note": "AI는 none이라 했지만 center/after에 로디드 비스트 스텝이 보임 — 놓친 케이스"
+  },
+  {
+   "review_number": "96",
+   "video_id": "RVTvOh1jD00",
+   "guide_id": "vg-3",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 사이드 플랭크에서 다리 호 동작"
+  },
+  {
+   "review_number": "97",
+   "video_id": "J5VIfgcr5wQ",
+   "guide_id": "vg-1",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "none",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "missed_usable_frame",
+   "fresh_video": true,
+   "grader_note": "AI는 none이라 했지만 center/after에 어깨→머리 위 뻗는 구간이 보임 — 놓친 케이스"
+  },
+  {
+   "review_number": "98",
+   "video_id": "J5VIfgcr5wQ",
+   "guide_id": "vg-2",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before/center는 아직 넓은 스탠스가 아님"
+  },
+  {
+   "review_number": "99",
+   "video_id": "J5VIfgcr5wQ",
+   "guide_id": "vg-3",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "before",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "center는 덤벨이 어깨에 머문 하강 구간"
+  },
+  {
+   "review_number": "100",
+   "video_id": "J5VIfgcr5wQ",
+   "guide_id": "vg-4",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "none",
+   "usable_candidates": [
+    "before",
+    "after"
+   ],
+   "outcome": "missed_usable_frame",
+   "fresh_video": true,
+   "grader_note": "AI는 none이라 했지만 before/after에 사선 회전 동작이 보임 — 놓친 케이스"
+  },
+  {
+   "review_number": "101",
+   "video_id": "J5VIfgcr5wQ",
+   "guide_id": "vg-5",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 힙힌지 구간"
+  },
+  {
+   "review_number": "102",
+   "video_id": "3N_8ioZ4jdk",
+   "guide_id": "vg-1",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 런지 측면·골반 낮춤"
+  },
+  {
+   "review_number": "103",
+   "video_id": "3N_8ioZ4jdk",
+   "guide_id": "vg-2",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 무릎을 굽힌 상태 — 수직으로 든 게 아님"
+  },
+  {
+   "review_number": "104",
+   "video_id": "SbURodJWeMM",
+   "guide_id": "vg-1",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": false,
+   "grader_note": "세 장 모두 상체 숙이고 팔 잡은 자세"
+  },
+  {
+   "review_number": "105",
+   "video_id": "SbURodJWeMM",
+   "guide_id": "vg-2",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": false,
+   "grader_note": "before는 발목을 잡기 전 서 있는 상태"
+  },
+  {
+   "review_number": "106",
+   "video_id": "SbURodJWeMM",
+   "guide_id": "vg-3",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": false,
+   "grader_note": "before는 팔을 아직 올리지 않음"
+  },
+  {
+   "review_number": "107",
+   "video_id": "8XNpAg5mDS8",
+   "guide_id": "vg-1",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 뒷무릎이 바닥에 닿지 않은 자세"
+  },
+  {
+   "review_number": "108",
+   "video_id": "8XNpAg5mDS8",
+   "guide_id": "vg-2",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 손으로 허벅지를 감싸기 전"
+  },
+  {
+   "review_number": "109",
+   "video_id": "n144BZEEBkA",
+   "guide_id": "vg-1",
+   "domain": "fitness",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 누운 다리 벌린 자세 (화각이 작아 확신 낮음)"
+  },
+  {
+   "review_number": "110",
+   "video_id": "W8qRG6I26C0",
+   "guide_id": "vg-1",
+   "domain": "software",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 탭 목록이 아직 안 펼쳐짐"
+  },
+  {
+   "review_number": "111",
+   "video_id": "W8qRG6I26C0",
+   "guide_id": "vg-2",
+   "domain": "software",
+   "language": "ko",
+   "ai_slot": "none",
+   "usable_candidates": [],
+   "outcome": "correct_link_fallback",
+   "fresh_video": true,
+   "grader_note": "창 크기를 조절하는 동작이 세 장 어디에도 없음 — AI의 none과 일치"
+  },
+  {
+   "review_number": "112",
+   "video_id": "W8qRG6I26C0",
+   "guide_id": "vg-3",
+   "domain": "software",
+   "language": "ko",
+   "ai_slot": "after",
+   "usable_candidates": [
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "after만 Device 드롭다운이 펼쳐짐"
+  },
+  {
+   "review_number": "113",
+   "video_id": "l1-1aVgFth4",
+   "guide_id": "vg-1",
+   "domain": "software",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 설명란 하이퍼링크가 강조돼 보임"
+  },
+  {
+   "review_number": "114",
+   "video_id": "l1-1aVgFth4",
+   "guide_id": "vg-2",
+   "domain": "software",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 엑셀 화면, after는 이미 펼쳐진 결과"
+  },
+  {
+   "review_number": "115",
+   "video_id": "tU1fvfbNBtY",
+   "guide_id": "vg-1",
+   "domain": "software",
+   "language": "ko",
+   "ai_slot": "none",
+   "usable_candidates": [],
+   "outcome": "correct_link_fallback",
+   "fresh_video": false,
+   "grader_note": "키보드·게임 바가 세 장 어디에도 없음 — AI의 none과 일치"
+  },
+  {
+   "review_number": "116",
+   "video_id": "tU1fvfbNBtY",
+   "guide_id": "vg-2",
+   "domain": "software",
+   "language": "ko",
+   "ai_slot": "none",
+   "usable_candidates": [
+    "before",
+    "center"
+   ],
+   "outcome": "missed_usable_frame",
+   "fresh_video": false,
+   "grader_note": "플러그인 검색 패널은 보이나 입력 문자열은 판독 불가 (확신 낮음). AI는 none"
+  },
+  {
+   "review_number": "117",
+   "video_id": "tU1fvfbNBtY",
+   "guide_id": "vg-3",
+   "domain": "software",
+   "language": "ko",
+   "ai_slot": "none",
+   "usable_candidates": [],
+   "outcome": "correct_link_fallback",
+   "fresh_video": false,
+   "grader_note": "우상단 재생 버튼이 해상도상 식별 불가 — AI의 none과 일치 (#18과 같은 유형)"
+  },
+  {
+   "review_number": "118",
+   "video_id": "jQ1sfKIl50E",
+   "guide_id": "vg-1",
+   "domain": "software",
+   "language": "ko",
+   "ai_slot": "center",
+   "usable_candidates": [
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "before는 스케일 전 원본 크기"
+  },
+  {
+   "review_number": "119",
+   "video_id": "jQ1sfKIl50E",
+   "guide_id": "vg-2",
+   "domain": "software",
+   "language": "ko",
+   "ai_slot": "before",
+   "usable_candidates": [
+    "before",
+    "center",
+    "after"
+   ],
+   "outcome": "correct_photo",
+   "fresh_video": true,
+   "grader_note": "세 장 모두 알약 형태 버튼이 보임"
+  }
+ ]
+}
