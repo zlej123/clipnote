@@ -66,6 +66,12 @@ def main():
             # test_core.test_en_output_smoke_suite_is_wired와 같은 범위여야 한다 (6~12)
             if not 6 <= len(videos) <= 12:
                 errors.append(f"{domain}: smoke 스위트 영상 {len(videos)}개 (계약: 6~12개)")
+        elif suite == "holdout":
+            # 홀드아웃은 품질 수치의 신뢰구간을 좁히는 게 목적이라 상한이 다르다.
+            # 실측: 28 가이드에서 잘못된 사진 2건이면 95% CI가 2~23%로 벌어져
+            # 다른 배치와 비교가 불가능했다. 100 가이드(영상 약 40편)가 최소선이다.
+            if not 30 <= len(videos) <= 60:
+                errors.append(f"{domain}: holdout 스위트 영상 {len(videos)}개 (계약: 30~60개)")
         elif not 8 <= len(videos) <= 12:
             errors.append(f"{domain}: 영상 {len(videos)}개 (계약: 8~12개)")
         for index, video in enumerate(videos):

@@ -1005,6 +1005,396 @@
           "framing": "screen",
           "source_language": "en"
         }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=NKtR3KpS83w",
+        "profile": "recipe",
+        "note": "[recipe] EN holdout 2차: How To Cook A Perfect Risotto",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=ZBD5nfNqg_w",
+        "profile": "recipe",
+        "note": "[recipe] EN holdout 2차: How to Cook Perfect Scallops Every Time",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=T8FK5apuL40",
+        "profile": "recipe",
+        "note": "[recipe] EN holdout 2차: How to Knead Bread Dough by Hand | Detailed Instruct",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=X1XoCQm5JSQ",
+        "profile": "recipe",
+        "note": "[recipe] EN holdout 2차: Learn Jacques Pépin's famous omelet techniques",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=tV8kA4eWkRo",
+        "profile": "recipe",
+        "note": "[recipe] EN holdout 2차: How to Temper Chocolate",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=axV4cFeMlFY",
+        "profile": "generic",
+        "note": "[craft] EN holdout 2차: how to crochet a granny square for beginners ♡ no ma",
+        "strata": {
+          "length": "medium",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=-WS7ptWFB_k",
+        "profile": "generic",
+        "note": "[craft] EN holdout 2차: Hand Embroidery 101 | Beginners Guide to Embroidery,",
+        "strata": {
+          "length": "medium",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=tNxa0ngtQJw",
+        "profile": "generic",
+        "note": "[craft] EN holdout 2차: How to Make Polymer Clay Beads",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=6ik_yEXHUlg",
+        "profile": "generic",
+        "note": "[craft] EN holdout 2차: How to Wrap a Present Perfectly Every Time",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=jJWl9Kpwbno",
+        "profile": "generic",
+        "note": "[craft] EN holdout 2차: How to Make Candles in 5 Minutes (Crash Course) | DI",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=0a92Jz0djGU",
+        "profile": "generic",
+        "note": "[diy] EN holdout 2차: How to Caulk a Bathtub - Caulking Tips",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=8i0GJ6-cG8k",
+        "profile": "generic",
+        "note": "[diy] EN holdout 2차: How to Change Out a Light Switch Like a Pro!",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=fKMMAp7mKVQ",
+        "profile": "generic",
+        "note": "[diy] EN holdout 2차: How To Unclog Drain 4 Ways",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=99beIiQF20w",
+        "profile": "generic",
+        "note": "[diy] EN holdout 2차: How to Paint a Room Like a Pro",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=1f9PeTaVaKI",
+        "profile": "generic",
+        "note": "[diy] EN holdout 2차: 7 CLEVER Picture Hanging Tricks Everyone Should Know",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=6bfHUs7ulTM",
+        "profile": "generic",
+        "note": "[beauty] EN holdout 2차: Common Blush Mistakes- The Do's & Don’ts",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=NOxCLGwNM_0",
+        "profile": "generic",
+        "note": "[beauty] EN holdout 2차: How To Curl Your Hair With A Straightener For Comple",
+        "strata": {
+          "length": "medium",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=iWCV851MnZ8",
+        "profile": "generic",
+        "note": "[beauty] EN holdout 2차: HOW TO GROOM + SHAPE YOUR EYEBROWS! (super easy + at",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=NHAy6iJDAKQ",
+        "profile": "generic",
+        "note": "[beauty] EN holdout 2차: How To Paint Nails Perfectly With French Tips | DIY ",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=jfuoio_Ahlk",
+        "profile": "generic",
+        "note": "[beauty] EN holdout 2차: How To Apply AND Remove False Lashes | Shonagh Scott",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "hands",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=my0tLDaWyDU",
+        "profile": "generic",
+        "note": "[fitness] EN holdout 2차: How To Squat Correctly (NO BACK PAIN)",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "full-body",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=I9fsqKE5XHo",
+        "profile": "generic",
+        "note": "[fitness] EN holdout 2차: Do Push-Ups with Proper Form!",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "full-body",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=y9CDXyjjFNI",
+        "profile": "generic",
+        "note": "[fitness] EN holdout 2차: Full-Body Foam Rolling Exercises | A Complete Guide",
+        "strata": {
+          "length": "medium",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "full-body",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=K3GLIs6yNp4",
+        "profile": "generic",
+        "note": "[fitness] EN holdout 2차: 15 min Abs and Hip Workout | Pilates for Beginners",
+        "strata": {
+          "length": "medium",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "full-body",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=6LqqeBtFn9M",
+        "profile": "generic",
+        "note": "[fitness] EN holdout 2차: How to do the perfect PLANK: technique and common mi",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "full-body",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=xIynD1gFOLo",
+        "profile": "generic",
+        "note": "[software] EN holdout 2차: VLOOKUP in Excel | Step-by-Step Tutorial for Beginne",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "screen",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=fE1_nHllIp8",
+        "profile": "generic",
+        "note": "[software] EN holdout 2차: Adobe Photoshop: Layer Masks Explained in 7 Minutes ",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "screen",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=WAjGg5ubA8I",
+        "profile": "generic",
+        "note": "[software] EN holdout 2차: Getting to know databases in Notion",
+        "strata": {
+          "length": "short",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "screen",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=oUlpbue-Gw0",
+        "profile": "generic",
+        "note": "[software] EN holdout 2차: Learn Premiere Pro in 10 minutes - Beginner Tutorial",
+        "strata": {
+          "length": "medium",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "screen",
+          "source_language": "en"
+        }
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=OsSX9sPpgV0",
+        "profile": "generic",
+        "note": "[software] EN holdout 2차: Google Sheets Formulas Tutorial: How to Use Formulas",
+        "strata": {
+          "length": "medium",
+          "audio": "spoken",
+          "captions": "auto",
+          "editing": "jump-cut",
+          "framing": "screen",
+          "source_language": "en"
+        }
       }
     ]
   }
