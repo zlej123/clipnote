@@ -191,6 +191,14 @@ def _same_guide(a: dict, b: dict) -> bool:
     return len(first & second) / min(len(first), len(second)) >= MERGE_CONTAINMENT
 
 
+def trim_guides(guides: list, max_guides: int) -> list:
+    """상한이 있으면 importance 높은 순으로만 남긴다. 0이면 그대로 (기본)."""
+    if not max_guides or len(guides) <= max_guides:
+        return guides
+    return sorted(guides, key=lambda g: (-(g.get("importance") or 0),
+                                         g.get("best_visual_timestamp") or 0))[:max_guides]
+
+
 def merge_runs(runs: list, max_guides: int) -> dict:
     """여러 분석 결과를 첫 실행의 단계 구조 위로 합친다.
 
@@ -212,9 +220,10 @@ def merge_runs(runs: list, max_guides: int) -> dict:
             guides.append(guide)
     guides.sort(key=lambda g: (-(g.get("importance") or 0),
                                g.get("best_visual_timestamp") or 0))
-    for index, guide in enumerate(guides[:max_guides], start=1):
+    guides = trim_guides(guides, max_guides)
+    for index, guide in enumerate(guides, start=1):
         guide["id"] = f"vg-{index}"
-    merged["visual_guides"] = guides[:max_guides]
+    merged["visual_guides"] = guides
     merged["_analysis_passes"] = len(runs)
     return merged
 
@@ -264,7 +273,9 @@ def main():
         "--language",
         default=os.environ.get("STEPKEEPER_LANGUAGE", "ko"),
         help="사용자 프로파일 출력 언어(BCP-47, 예: ko, en, ja)")
-    ap.add_argument("--max-guides", type=int, default=5, help="최대 시각 가이드 수")
+    ap.add_argument("--max-guides", type=int, default=0,
+                    help="시각 가이드 상한. 0이면 무제한(기본) — 애매한 표현마다 모두 만든다. "
+                         "문서를 짧게 유지하고 싶을 때만 값을 준다")
     ap.add_argument("--force", action="store_true", help="캐시 무시하고 재분석")
     ap.add_argument("--passes", type=int, default=1,
                     help="분석 반복 횟수. 2 이상이면 실행마다 다르게 나오는 "
@@ -316,7 +327,9 @@ def main():
                     print(f"  {attempt + 1}회차 분석 (합집합으로 가이드를 늘립니다)")
                 runs.append(normalize(call_gemini(
                     args.url, prompt, args.model, key, schema)))
-            data = merge_runs(runs, args.max_guides) if len(runs) > 1 else runs[0]
+            data = (merge_runs(runs, args.max_guides) if len(runs) > 1
+                    else dict(runs[0], visual_guides=trim_guides(
+                        runs[0].get("visual_guides", []), args.max_guides)))
         except RateLimitError as error:
             print("Gemini 무료 티어/속도 한도에 도달했습니다.")
             print(str(error))

@@ -206,12 +206,15 @@ class CoreContractTests(unittest.TestCase):
         self.assertEqual("1:02", hms(62))
         self.assertEqual("1:01:05", hms(3665))
 
-    def test_prompt_injects_user_language_and_limits(self):
+    def test_prompt_injects_user_language_and_duration(self):
         prompt = analyze.load_prompt("generic", "6:41", "ja", 7)
         self.assertIn("ja", prompt)
-        self.assertIn("7개 이하", prompt)
+        self.assertIn("6:41", prompt)
         self.assertNotIn("{OUTPUT_LANGUAGE}", prompt)
+        # 개수 상한은 더 이상 프롬프트로 걸지 않는다 — 걸면 커버리지가 무너진다(실측 43%↔73%).
+        # 상한이 필요하면 분석 뒤 trim_guides로 자른다.
         self.assertNotIn("{MAX_VISUAL_GUIDES}", prompt)
+        self.assertNotIn("7개 이하", prompt)
 
     def test_template_follows_output_language(self):
         """문서 뼈대(라벨·출처 줄)도 --language를 따라야 한다.
@@ -271,6 +274,44 @@ class CandidateTimesTests(unittest.TestCase):
         times = capture.candidate_times(
             {"t_start": 0, "t_end": 20}, self.guide(10, "action"), 100)
         self.assertEqual({"before": 9, "center": 10, "after": 11}, times)
+
+
+class GuideCapTests(unittest.TestCase):
+    """프롬프트에 개수 상한을 걸면 커버리지가 무너진다 (실측 9편: 상한 5 → 커버리지 43%,
+    상한 제거 → 73%; 대조군은 +5%뿐이라 노이즈가 아니다). 상한은 이제 선택 장치다."""
+
+    def test_prompt_no_longer_caps_the_count(self):
+        rules = (Path("src/stepkeeper/skill-core/engine/rules.md")
+                 .read_text(encoding="utf-8"))
+        self.assertNotIn("{MAX_VISUAL_GUIDES}", rules)
+        self.assertIn("개수 상한은 없다", rules)
+
+    def test_zero_means_unlimited(self):
+        guides = [{"importance": i / 10} for i in range(9)]
+        self.assertEqual(9, len(analyze.trim_guides(guides, 0)))
+
+    def test_cap_keeps_the_most_important(self):
+        guides = [{"importance": 0.1, "best_visual_timestamp": 1},
+                  {"importance": 0.9, "best_visual_timestamp": 2},
+                  {"importance": 0.5, "best_visual_timestamp": 3}]
+        kept = analyze.trim_guides(guides, 2)
+        self.assertEqual([0.9, 0.5], [g["importance"] for g in kept])
+
+    def test_contract_allows_any_count_when_unlimited(self):
+        data = CoreContractTests().valid_data()
+        data["_max_visual_guides"] = 0
+        base = data["visual_guides"][0]
+        data["visual_guides"] = [dict(base, id=f"vg-{i}") for i in range(1, 13)]
+        errors, _ = validate(data)
+        self.assertEqual([], [e for e in errors if "상한" in e])
+
+    def test_contract_still_enforces_an_explicit_cap(self):
+        data = CoreContractTests().valid_data()
+        data["_max_visual_guides"] = 2
+        base = data["visual_guides"][0]
+        data["visual_guides"] = [dict(base, id=f"vg-{i}") for i in range(1, 5)]
+        errors, _ = validate(data)
+        self.assertTrue(any("상한" in e for e in errors))
 
 
 class MergeRunsTests(unittest.TestCase):

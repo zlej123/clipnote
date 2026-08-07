@@ -92,8 +92,10 @@ def validate(data: dict):
         previous_start = start
 
     guides = data["visual_guides"]
-    max_guides = data.get("_max_visual_guides", 5)
-    if len(guides) > max_guides:
+    # 0 또는 None = 상한 없음. 프롬프트가 상한을 걸면 커버리지가 무너진다는 실측 이후
+    # 상한은 "사용자가 문서 길이를 제한하고 싶을 때만" 쓰는 선택 장치가 됐다.
+    max_guides = data.get("_max_visual_guides") or 0
+    if max_guides and len(guides) > max_guides:
         errors.append(f"visual_guides {len(guides)}개 (설정 상한 {max_guides})")
     if not guides:
         warnings.append("visual_guides 0개 (시각 가이드 없음)")
