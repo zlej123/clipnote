@@ -1,0 +1,127 @@
+{
+ "evaluation_id": "2026-08-07-guide-density-vs-length",
+ "review_kind": "measurement",
+ "note": "A user reported a 16-minute recipe video producing a document with almost no photos. It is not an outlier: guide production barely scales with video length, so long videos get a near-constant handful of guides spread over many more steps.",
+ "corpus": {
+  "videos": 106,
+  "source": "ko holdout + en holdout + rerun-2 analyses"
+ },
+ "by_length": {
+  "under_3min": {
+   "videos": 20,
+   "median_guides": 2.0,
+   "median_steps": 3.0,
+   "mean_coverage": 0.593,
+   "guides_per_minute": 2.32
+  },
+  "3_to_6min": {
+   "videos": 23,
+   "median_guides": 2,
+   "median_steps": 4,
+   "mean_coverage": 0.506,
+   "guides_per_minute": 0.57
+  },
+  "6_to_10min": {
+   "videos": 34,
+   "median_guides": 3.0,
+   "median_steps": 6.0,
+   "mean_coverage": 0.477,
+   "guides_per_minute": 0.4
+  },
+  "10_to_20min": {
+   "videos": 22,
+   "median_guides": 4.0,
+   "median_steps": 7.0,
+   "mean_coverage": 0.482,
+   "guides_per_minute": 0.28
+  },
+  "over_20min": {
+   "videos": 7,
+   "median_guides": 3,
+   "median_steps": 7,
+   "mean_coverage": 0.373,
+   "guides_per_minute": 0.13
+  }
+ },
+ "correlations": {
+  "duration_vs_guides": 0.36,
+  "duration_vs_coverage": -0.22
+ },
+ "finding": "Guides per minute collapses from 2.32 (under 3 min) to 0.13 (over 20 min) while median steps rise 3 -> 7, so coverage falls 59% -> 37%. The model emits a roughly fixed number of guides regardless of how much content there is.",
+ "chunked_analysis_probe": {
+  "method": "Gemini accepts video_metadata start/end offsets on YouTube file_uri parts, and the timestamps it returns are absolute (verified), so per-segment analysis is safe.",
+  "videos": 5,
+  "whole_video": {
+   "mean_guides": 4.8,
+   "mean_coverage": 0.5
+  },
+  "chunked_8min": {
+   "mean_guides": 6.8,
+   "mean_coverage": 0.45,
+   "mean_steps": 12.4
+  },
+  "verdict": "More guides (4.8 -> 6.8) but coverage did NOT improve (50% -> 45%) because chunking also fragments steps (7 -> 12). Not yet compared against spending the same call budget on whole-video passes, which is the fair control — that comparison is the open question, deliberately left unrun.",
+  "per_video": [
+   {
+    "video_id": "eUkwkkRKdfY",
+    "duration": 982,
+    "whole": [
+     3,
+     0.33
+    ],
+    "chunked": [
+     6,
+     0.6
+    ]
+   },
+   {
+    "video_id": "y9CDXyjjFNI",
+    "duration": 1143,
+    "whole": [
+     3,
+     0.33
+    ],
+    "chunked": [
+     8,
+     0.43
+    ]
+   },
+   {
+    "video_id": "K3GLIs6yNp4",
+    "duration": 941,
+    "whole": [
+     5,
+     0.5
+    ],
+    "chunked": [
+     7,
+     0.27
+    ]
+   },
+   {
+    "video_id": "-WS7ptWFB_k",
+    "duration": 1061,
+    "whole": [
+     8,
+     0.5
+    ],
+    "chunked": [
+     8,
+     0.5
+    ]
+   },
+   {
+    "video_id": "axV4cFeMlFY",
+    "duration": 838,
+    "whole": [
+     5,
+     0.83
+    ],
+    "chunked": [
+     5,
+     0.44
+    ]
+   }
+  ]
+ }
+}
