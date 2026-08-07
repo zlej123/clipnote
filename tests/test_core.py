@@ -273,6 +273,87 @@ class CandidateTimesTests(unittest.TestCase):
         self.assertEqual({"before": 9, "center": 10, "after": 11}, times)
 
 
+class MergeRunsTests(unittest.TestCase):
+    """같은 프롬프트를 두 번 돌리면 다른 가이드가 나온다 (실측: 기준선 재실행만으로 ±0.95개).
+    프롬프트를 고쳐 더 뽑으려던 시도는 두 번 다 노이즈에 묻혔지만, 합집합은 2.8→5.2개였다."""
+
+    def run_data(self, steps, guides):
+        return {"steps": steps, "visual_guides": guides}
+
+    def guide(self, gid, step_id, timestamp, phrase="p", importance=0.5):
+        return {"id": gid, "step_id": step_id, "best_visual_timestamp": timestamp,
+                "phrase": phrase, "importance": importance}
+
+    def test_union_keeps_guides_from_every_run(self):
+        steps = [{"id": 1, "t_start": 0, "t_end": 50}]
+        merged = analyze.merge_runs([
+            self.run_data(steps, [self.guide("vg-1", 1, 10, "마늘 다지기")]),
+            self.run_data(steps, [self.guide("vg-1", 1, 40, "유화된 소스")]),
+        ], max_guides=5)
+        self.assertEqual(["마늘 다지기", "유화된 소스"],
+                         [g["phrase"] for g in merged["visual_guides"]])
+        self.assertEqual(["vg-1", "vg-2"], [g["id"] for g in merged["visual_guides"]])
+        self.assertEqual(2, merged["_analysis_passes"])
+
+    def test_same_moment_is_not_duplicated(self):
+        steps = [{"id": 1, "t_start": 0, "t_end": 50}]
+        merged = analyze.merge_runs([
+            self.run_data(steps, [self.guide("vg-1", 1, 10, "마늘 다지기")]),
+            self.run_data(steps, [self.guide("vg-1", 1, 11, "마늘을 다지는 크기")]),
+        ], max_guides=5)
+        self.assertEqual(1, len(merged["visual_guides"]))
+
+    def test_guides_are_rehomed_by_timestamp_when_steps_differ(self):
+        # 실행마다 단계 구조가 달라진다 (실측: 같은 영상이 4단계 → 6단계).
+        # step_id를 그대로 쓰면 엉뚱한 단계에 붙으므로 시간으로 다시 잇는다.
+        first = [{"id": 1, "t_start": 0, "t_end": 30}, {"id": 2, "t_start": 31, "t_end": 60}]
+        second = [{"id": 1, "t_start": 0, "t_end": 60}]
+        merged = analyze.merge_runs([
+            self.run_data(first, [self.guide("vg-1", 1, 10)]),
+            self.run_data(second, [self.guide("vg-1", 1, 45, "뒤쪽 순간")]),
+        ], max_guides=5)
+        rehomed = next(g for g in merged["visual_guides"] if g["phrase"] == "뒤쪽 순간")
+        self.assertEqual(2, rehomed["step_id"])      # 45초는 첫 실행 기준 2단계
+
+    def test_cap_is_respected_and_keeps_the_most_important(self):
+        steps = [{"id": 1, "t_start": 0, "t_end": 90}]
+        merged = analyze.merge_runs([
+            self.run_data(steps, [self.guide("vg-1", 1, 10, "낮음", 0.2),
+                                  self.guide("vg-2", 1, 30, "높음", 0.9)]),
+            self.run_data(steps, [self.guide("vg-1", 1, 60, "중간", 0.5)]),
+        ], max_guides=2)
+        self.assertEqual(["높음", "중간"], [g["phrase"] for g in merged["visual_guides"]])
+
+    def test_reworded_duplicate_is_merged(self):
+        """실측: 합집합에서 'windowpane test showing translucent dough'와
+        'translucent windowpane test'가 둘 다 남아 거의 같은 사진이 두 장 들어갔다."""
+        steps = [{"id": 1, "t_start": 0, "t_end": 300}]
+        merged = analyze.merge_runs([
+            self.run_data(steps, [self.guide("vg-1", 1, 30,
+                                             "windowpane test showing translucent dough")]),
+            self.run_data(steps, [self.guide("vg-1", 1, 120, "translucent windowpane test")]),
+        ], max_guides=5)
+        self.assertEqual(1, len(merged["visual_guides"]))
+
+    def test_different_moments_in_one_step_survive(self):
+        # 같은 단계라도 내용이 다르면 남아야 한다 — 합치기가 과해지면 원래 문제로 돌아간다
+        steps = [{"id": 1, "t_start": 0, "t_end": 300}]
+        merged = analyze.merge_runs([
+            self.run_data(steps, [self.guide("vg-1", 1, 30, "Guanciale cooked but not crispy")]),
+            self.run_data(steps, [self.guide("vg-1", 1, 120, "Creamy emulsified pasta sauce")]),
+        ], max_guides=5)
+        self.assertEqual(2, len(merged["visual_guides"]))
+
+    def test_guides_without_timestamp_are_dropped(self):
+        steps = [{"id": 1, "t_start": 0, "t_end": 50}]
+        merged = analyze.merge_runs([
+            self.run_data(steps, [{"id": "vg-1", "step_id": 1,
+                                   "best_visual_timestamp": None, "phrase": "장면 없음"}]),
+            self.run_data(steps, [self.guide("vg-1", 1, 20, "쓸 만한 순간")]),
+        ], max_guides=5)
+        self.assertEqual(["쓸 만한 순간"], [g["phrase"] for g in merged["visual_guides"]])
+
+
 class CaptureHeightTests(unittest.TestCase):
     """화면 녹화는 정보가 작은 UI 텍스트에 있어 480p에서 판독이 안 된다 (실측: 홀드아웃
     119건 중 '세 후보 모두 부적합' 5건의 절반이 software 도메인의 해상도 문제였다)."""

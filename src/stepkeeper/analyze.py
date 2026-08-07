@@ -145,6 +145,80 @@ def generate_json(parts: list, model: str, key: str,
     return json.loads(text)
 
 
+# 같은 프롬프트를 두 번 돌리면 **서로 다른 가이드**가 나온다 (모델 서빙 비결정성 실측:
+# 기준선 재실행만으로 가이드 수가 ±0.95개 흔들린다). 프롬프트를 고쳐 더 뽑으려던 시도는
+# 두 번 다 노이즈에 묻혔지만, 여러 번 돌려 **합집합**을 취하면 2.8개 → 5.2개로 늘었다.
+# 노이즈와 싸우는 대신 이용하는 쪽이다.
+MERGE_SECONDS = 2          # 이보다 가까운 같은 단계의 가이드는 같은 순간으로 본다
+
+
+def _step_for(timestamp: int, steps: list) -> int | None:
+    """타임스탬프가 속한 단계 id. 실행마다 단계 구조가 달라지므로 시간으로 다시 잇는다."""
+    if not steps:
+        return None
+    for step in steps:
+        start, end = step.get("t_start"), step.get("t_end")
+        if start is not None and end is not None and start <= timestamp <= end:
+            return step["id"]
+    return min(steps, key=lambda s: min(
+        abs(timestamp - (s.get("t_start") or 0)),
+        abs(timestamp - (s.get("t_end") or 0))))["id"]
+
+
+# 같은 내용을 다르게 쓴 가이드를 걸러내는 문턱. 실측: 합집합에서 "windowpane test showing
+# translucent dough"와 "translucent windowpane test"가 둘 다 남아 거의 같은 사진이 두 장
+# 들어갔다. 짧은 쪽이 긴 쪽에 얼마나 담기는지(포함률)로 재야 이런 재진술이 잡힌다.
+MERGE_CONTAINMENT = 0.6
+_STOPWORDS = {"the", "a", "an", "and", "or", "of", "on", "in", "to", "with", "for",
+              "은", "는", "이", "가", "을", "를", "의", "에", "와", "과", "로"}
+
+
+def _tokens(guide: dict) -> set:
+    text = f"{guide.get('phrase', '')} {guide.get('what_to_show', '')}".lower()
+    words = "".join(ch if ch.isalnum() else " " for ch in text).split()
+    return {w for w in words if w not in _STOPWORDS and len(w) > 1}
+
+
+def _same_guide(a: dict, b: dict) -> bool:
+    if a.get("step_id") != b.get("step_id"):
+        return False
+    if abs((a.get("best_visual_timestamp") or 0)
+           - (b.get("best_visual_timestamp") or 0)) <= MERGE_SECONDS:
+        return True
+    first, second = _tokens(a), _tokens(b)
+    if not first or not second:
+        return False
+    return len(first & second) / min(len(first), len(second)) >= MERGE_CONTAINMENT
+
+
+def merge_runs(runs: list, max_guides: int) -> dict:
+    """여러 분석 결과를 첫 실행의 단계 구조 위로 합친다.
+
+    가이드는 시간으로 단계에 다시 매달고, 같은 순간이 중복되면 버리며,
+    마지막에 importance 순으로 상한까지만 남긴다 (상한의 의미를 지킨다).
+    """
+    merged = runs[0]
+    steps = merged.get("steps", [])
+    guides = []
+    for run in runs:
+        for guide in run.get("visual_guides", []):
+            timestamp = guide.get("best_visual_timestamp")
+            if timestamp is None:
+                continue
+            guide = dict(guide)
+            guide["step_id"] = _step_for(timestamp, steps)
+            if any(_same_guide(guide, kept) for kept in guides):
+                continue
+            guides.append(guide)
+    guides.sort(key=lambda g: (-(g.get("importance") or 0),
+                               g.get("best_visual_timestamp") or 0))
+    for index, guide in enumerate(guides[:max_guides], start=1):
+        guide["id"] = f"vg-{index}"
+    merged["visual_guides"] = guides[:max_guides]
+    merged["_analysis_passes"] = len(runs)
+    return merged
+
+
 def call_gemini(url: str, prompt: str, model: str, key: str,
                 schema: dict, retries: int = 2) -> dict:
     return generate_json(
@@ -192,9 +266,14 @@ def main():
         help="사용자 프로파일 출력 언어(BCP-47, 예: ko, en, ja)")
     ap.add_argument("--max-guides", type=int, default=5, help="최대 시각 가이드 수")
     ap.add_argument("--force", action="store_true", help="캐시 무시하고 재분석")
+    ap.add_argument("--passes", type=int, default=1,
+                    help="분석 반복 횟수. 2 이상이면 실행마다 다르게 나오는 "
+                         "가이드를 합쳐 더 촘촘한 문서를 만든다 (호출 비용 비례)")
     args = ap.parse_args()
     if args.max_guides < 0:
         ap.error("--max-guides는 0 이상이어야 합니다.")
+    if args.passes < 1:
+        ap.error("--passes는 1 이상이어야 합니다.")
 
     vid = video_id(args.url)
     out_file = analysis_file(data_root(), vid, args.profile, args.language)
@@ -228,10 +307,16 @@ def main():
             schema = load_schema(args.profile)
         except UnknownProfileError as error:
             sys.exit(str(error))
-        print(f"[1/2] Gemini({args.model}) 영상 분석 중... (수십 초~수 분)")
+        print(f"[1/2] Gemini({args.model}) 영상 분석 중... (수십 초~수 분)"
+              + (f" x{args.passes}회" if args.passes > 1 else ""))
         try:
-            data = normalize(call_gemini(
-                args.url, prompt, args.model, key, schema))
+            runs = []
+            for attempt in range(args.passes):
+                if attempt:
+                    print(f"  {attempt + 1}회차 분석 (합집합으로 가이드를 늘립니다)")
+                runs.append(normalize(call_gemini(
+                    args.url, prompt, args.model, key, schema)))
+            data = merge_runs(runs, args.max_guides) if len(runs) > 1 else runs[0]
         except RateLimitError as error:
             print("Gemini 무료 티어/속도 한도에 도달했습니다.")
             print(str(error))

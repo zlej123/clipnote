@@ -66,6 +66,11 @@ python -m stepkeeper.feedback add semantic-evaluation.json   # accumulates accur
 
 Artifacts are written under the current directory (override with `STEPKEEPER_DATA`).
 
+`--passes 2` analyzes the video twice and merges the guides. The model is non-deterministic enough
+that two runs surface *different* ambiguous moments, so the union is denser than either run — 2.8 →
+4.0 guides per video, measured over ten videos. Near-duplicates are merged. Use it when a long video
+comes back with a thin document; it costs one extra analysis call per pass.
+
 Frames are captured from a 480p download. Screen recordings are pulled at 1080p instead — their
 information lives in small UI text that 480p destroys, and static screen content compresses well
 enough that the bigger file costs little. Override either with `STEPKEEPER_CAPTURE_HEIGHT`.
