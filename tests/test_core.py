@@ -276,6 +276,66 @@ class CandidateTimesTests(unittest.TestCase):
         self.assertEqual({"before": 9, "center": 10, "after": 11}, times)
 
 
+class FillEmptyStepsTests(unittest.TestCase):
+    """긴 영상은 단계가 쪼개지는데 가이드는 4~5개에서 멈춘다 (실측 20편: 10분 이상은
+    상한을 없애도 커버 44%→46% 제자리). 빈 단계 구간만 좁혀 되묻는다."""
+
+    def data(self):
+        return {"steps": [{"id": 1, "summary": "a", "t_start": 0, "t_end": 60},
+                          {"id": 2, "summary": "b", "t_start": 60, "t_end": 300},
+                          {"id": 3, "summary": "c", "t_start": 300, "t_end": 330}],
+                "visual_guides": [{"id": "vg-1", "step_id": 1,
+                                   "best_visual_timestamp": 10}]}
+
+    def test_empty_steps_are_longest_first(self):
+        gaps = analyze.empty_steps(self.data())
+        self.assertEqual([2, 3], [s["id"] for s in gaps])   # 240초짜리가 먼저
+
+    def test_fill_attaches_guides_to_the_queried_step(self):
+        # 각 구간 안쪽 타임스탬프를 돌려주도록 — 구간마다 물어보는 창이 다르다
+        answers = iter(["2:30", "5:10"])
+        def fake(parts, model, key, schema):
+            return {"guides": [{"source_phrase": "이 정도로", "phrase": "반죽 되기",
+                                "type": "state", "what_to_show": "천천히 흐르는 상태",
+                                "best_visual_timestamp": next(answers),
+                                "guide_text": "천천히 흐른다", "importance": 0.7}]}
+        data = self.data()
+        with patch.object(analyze, "generate_json", side_effect=fake):
+            added = analyze.fill_empty_steps(data, "u", "m", "k", "ko")
+        self.assertEqual(2, added)                            # 빈 단계 2개 각각에서 1개
+        by_step = {g["step_id"]: g["best_visual_timestamp"]
+                   for g in data["visual_guides"]}
+        self.assertEqual(150, by_step[2])                     # 2:30 → 초, 2단계(60~300)
+        self.assertEqual(310, by_step[3])                     # 5:10 → 초, 3단계(300~330)
+
+    def test_out_of_window_answers_are_dropped(self):
+        # 모델이 구간을 벗어난 타임스탬프를 주면 프레임을 엉뚱한 데서 뜬다
+        found = {"guides": [{"source_phrase": "x", "phrase": "y", "type": "state",
+                             "what_to_show": "z", "best_visual_timestamp": "9:00",
+                             "guide_text": "w", "importance": 0.5}]}
+        data = self.data()
+        with patch.object(analyze, "generate_json", return_value=found):
+            self.assertEqual(0, analyze.fill_empty_steps(data, "u", "m", "k", "ko"))
+
+    def test_empty_answer_adds_nothing(self):
+        # 억지로 만들지 않는다 — 절차만 있는 단계는 비워 두는 게 맞다
+        data = self.data()
+        with patch.object(analyze, "generate_json", return_value={"guides": []}):
+            self.assertEqual(0, analyze.fill_empty_steps(data, "u", "m", "k", "ko"))
+
+    def test_call_limit_is_respected(self):
+        data = {"steps": [{"id": i, "summary": "s", "t_start": i * 60,
+                           "t_end": i * 60 + 59} for i in range(1, 21)],
+                "visual_guides": []}
+        calls = []
+        def fake(parts, model, key, schema):
+            calls.append(1)
+            return {"guides": []}
+        with patch.object(analyze, "generate_json", side_effect=fake):
+            analyze.fill_empty_steps(data, "u", "m", "k", "ko")
+        self.assertEqual(analyze.MAX_FILL_CALLS, len(calls))
+
+
 class GuideCapTests(unittest.TestCase):
     """프롬프트에 개수 상한을 걸면 커버리지가 무너진다 (실측 9편: 상한 5 → 커버리지 43%,
     상한 제거 → 73%; 대조군은 +5%뿐이라 노이즈가 아니다). 상한은 이제 선택 장치다."""
@@ -312,6 +372,80 @@ class GuideCapTests(unittest.TestCase):
         data["visual_guides"] = [dict(base, id=f"vg-{i}") for i in range(1, 5)]
         errors, _ = validate(data)
         self.assertTrue(any("상한" in e for e in errors))
+
+
+class UnphotographableTests(unittest.TestCase):
+    """되묻기가 만든 82개를 채점자 둘이 매긴 라벨로 검증한 필터 (쓰레기 12개, 진짜 손실 0개).
+    프롬프트로 금지하는 방법은 실패했다 — 진짜도 같이 줄어 커버리지가 69%→53%였다."""
+
+    def g(self, source, phrase=""):
+        return {"source_phrase": source, "phrase": phrase}
+
+    def test_drops_what_a_still_cannot_show(self):
+        for source in ("go very slowly as you don't want to", "너무 강하게 치지 않고",
+                       "you can adjust how hard you want the torque",
+                       "무릎을 번갈아 굽혀줍니다", "Beginners - Every other day"):
+            self.assertTrue(analyze.unphotographable(self.g(source)), source)
+
+    def test_drops_specs_already_precise_in_text(self):
+        # 숫자가 단위에 붙어 있을 때만 잡는다 — "4 and a half millimeters"처럼
+        # 숫자를 말로 푼 것은 놓친다 (알려진 한계, 오탐을 늘리지 않는 쪽을 택함)
+        for source in ("50 grams", "they also come in 36 inches", "50% 이상이 파이썬"):
+            self.assertTrue(analyze.unphotographable(self.g(source)), source)
+
+    def test_drops_a_timestamp_masquerading_as_a_quote(self):
+        self.assertTrue(analyze.unphotographable(self.g("9:17")))
+        self.assertTrue(analyze.unphotographable(self.g(" 04:13 ")))
+
+    def test_keeps_the_ambiguity_the_product_exists_for(self):
+        for source, phrase in (("이 정도로", "이 정도로"), ("한입 크기로 썰어", "한입 크기"),
+                               ("golden brown", "노릇노릇한 색"),
+                               ("push it all the way in", "끝까지"),
+                               ("so the holes are at the bottom", "구멍이 아래쪽으로")):
+            self.assertEqual("", analyze.unphotographable(self.g(source, phrase)),
+                             f"{source} / {phrase}")
+
+
+class ReviewFindingsTests(unittest.TestCase):
+    """외부 코드 리뷰(2026-08-08)가 잡은 결함들 — 전부 직접 재현한 뒤 고쳤다."""
+
+    def test_short_phrase_does_not_swallow_a_distant_guide(self):
+        # 'dough' 한 단어가 240초 떨어진 'knead the dough until smooth'를 삼켰다
+        a = {"phrase": "dough", "what_to_show": "", "best_visual_timestamp": 10, "step_id": 1}
+        b = {"phrase": "knead the dough until smooth and elastic", "what_to_show": "",
+             "best_visual_timestamp": 250, "step_id": 1}
+        self.assertFalse(analyze._same_guide(a, b))
+
+    def test_step_without_timing_never_steals_a_guide(self):
+        # t_start=None인 단계가 '0초에 있는 것'처럼 보여 최근접을 가로챘다
+        steps = [{"id": 1, "t_start": 500, "t_end": 600},
+                 {"id": 2, "t_start": None, "t_end": None},
+                 {"id": 3, "t_start": 10, "t_end": 50}]
+        self.assertEqual(3, analyze._step_for(5, steps))
+
+    def test_renumber_closes_gaps_so_new_ids_cannot_collide(self):
+        # trim 뒤 남은 id가 vg-1, vg-4, vg-5면 다음 새 id vg-4가 충돌한다
+        guides = [{"id": f"vg-{i}", "importance": im}
+                  for i, im in zip(range(1, 6), [0.9, 0.1, 0.2, 0.8, 0.7])]
+        kept = analyze.renumber(analyze.trim_guides(guides, 3))
+        self.assertEqual(["vg-1", "vg-2", "vg-3"], [g["id"] for g in kept])
+
+    def test_reading_order_is_by_step_then_time(self):
+        # importance 순으로 두면 한 단계 안에서 뒤 순간이 먼저 인쇄된다
+        guides = [{"step_id": 1, "best_visual_timestamp": 280, "importance": 0.9},
+                  {"step_id": 1, "best_visual_timestamp": 10, "importance": 0.3},
+                  {"step_id": 2, "best_visual_timestamp": 5, "importance": 0.5}]
+        ordered = analyze.order_for_reading(guides)
+        self.assertEqual([(1, 10), (1, 280), (2, 5)],
+                         [(g["step_id"], g["best_visual_timestamp"]) for g in ordered])
+
+    def test_merge_runs_does_not_mutate_the_caller_data(self):
+        steps = [{"id": 1, "t_start": 0, "t_end": 50}]
+        first = {"steps": steps, "visual_guides": [
+            {"id": "vg-1", "step_id": 1, "best_visual_timestamp": 10,
+             "phrase": "a", "importance": 0.5}]}
+        analyze.merge_runs([first, {"steps": steps, "visual_guides": []}], 0)
+        self.assertNotIn("_analysis_passes", first)
 
 
 class MergeRunsTests(unittest.TestCase):

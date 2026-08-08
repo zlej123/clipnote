@@ -10,6 +10,7 @@ video/profile/language under work/analyses/.
 import argparse
 import json
 import os
+import re
 import time
 from urllib.error import HTTPError
 import subprocess
@@ -160,15 +161,22 @@ def _step_for(timestamp: int, steps: list) -> int | None:
         start, end = step.get("t_start"), step.get("t_end")
         if start is not None and end is not None and start <= timestamp <= end:
             return step["id"]
-    return min(steps, key=lambda s: min(
-        abs(timestamp - (s.get("t_start") or 0)),
-        abs(timestamp - (s.get("t_end") or 0))))["id"]
+    # 시간이 없는 단계는 "0초에 있는 것"처럼 보여 엉뚱하게 최근접이 된다 (리뷰 실측:
+    # t_start=None 단계가 5초 가이드를 10~50초 단계로부터 빼앗았다). 후보에서 뺀다.
+    timed = [s for s in steps
+             if s.get("t_start") is not None or s.get("t_end") is not None]
+    if not timed:
+        return steps[0]["id"]
+    return min(timed, key=lambda s: min(
+        abs(timestamp - s["t_start"]) if s.get("t_start") is not None else 10**9,
+        abs(timestamp - s["t_end"]) if s.get("t_end") is not None else 10**9))["id"]
 
 
 # 같은 내용을 다르게 쓴 가이드를 걸러내는 문턱. 실측: 합집합에서 "windowpane test showing
 # translucent dough"와 "translucent windowpane test"가 둘 다 남아 거의 같은 사진이 두 장
 # 들어갔다. 짧은 쪽이 긴 쪽에 얼마나 담기는지(포함률)로 재야 이런 재진술이 잡힌다.
 MERGE_CONTAINMENT = 0.6
+MIN_TOKENS_FOR_CONTAINMENT = 3   # 이보다 짧으면 시간 근접만으로 판단
 _STOPWORDS = {"the", "a", "an", "and", "or", "of", "on", "in", "to", "with", "for",
               "은", "는", "이", "가", "을", "를", "의", "에", "와", "과", "로"}
 
@@ -186,9 +194,28 @@ def _same_guide(a: dict, b: dict) -> bool:
            - (b.get("best_visual_timestamp") or 0)) <= MERGE_SECONDS:
         return True
     first, second = _tokens(a), _tokens(b)
-    if not first or not second:
+    # 토큰이 한두 개뿐이면 포함률이 무의미하다 — "dough" 하나가 "knead the dough until
+    # smooth and elastic"을 삼켜 240초 떨어진 다른 순간을 지웠다 (리뷰 실측).
+    if min(len(first), len(second)) < MIN_TOKENS_FOR_CONTAINMENT:
         return False
     return len(first & second) / min(len(first), len(second)) >= MERGE_CONTAINMENT
+
+
+def renumber(guides: list) -> list:
+    """id를 vg-1..vg-N으로 다시 매긴다. 자르고 나면 구멍이 생겨(vg-1, vg-4, vg-5)
+    나중에 추가되는 가이드가 기존 id와 충돌한다 (리뷰 실측: 중복 id 계약 위반)."""
+    for index, guide in enumerate(guides, start=1):
+        guide["id"] = f"vg-{index}"
+    return guides
+
+
+def order_for_reading(guides: list) -> list:
+    """문서에 실릴 순서 — 단계별로, 단계 안에서는 시간순.
+
+    importance 순으로 두면 한 단계 안에서 뒤 순간이 앞 순간보다 먼저 인쇄된다 (리뷰 실측).
+    """
+    return sorted(guides, key=lambda g: (g.get("step_id") or 0,
+                                         g.get("best_visual_timestamp") or 0))
 
 
 def trim_guides(guides: list, max_guides: int) -> list:
@@ -205,7 +232,7 @@ def merge_runs(runs: list, max_guides: int) -> dict:
     가이드는 시간으로 단계에 다시 매달고, 같은 순간이 중복되면 버리며,
     마지막에 importance 순으로 상한까지만 남긴다 (상한의 의미를 지킨다).
     """
-    merged = runs[0]
+    merged = dict(runs[0])
     steps = merged.get("steps", [])
     guides = []
     for run in runs:
@@ -220,12 +247,128 @@ def merge_runs(runs: list, max_guides: int) -> dict:
             guides.append(guide)
     guides.sort(key=lambda g: (-(g.get("importance") or 0),
                                g.get("best_visual_timestamp") or 0))
-    guides = trim_guides(guides, max_guides)
-    for index, guide in enumerate(guides, start=1):
-        guide["id"] = f"vg-{index}"
-    merged["visual_guides"] = guides
+    merged["visual_guides"] = renumber(trim_guides(guides, max_guides))
     merged["_analysis_passes"] = len(runs)
     return merged
+
+
+# 긴 영상은 단계가 촘촘히 쪼개지는데 가이드는 4~5개에서 멈춘다 (실측 20편: 10분 이상은
+# 상한을 없애도 커버리지 44%→46%로 제자리, 10분 미만은 41%→66%). 전체를 한 번 더 보게
+# 해도 같은 곳만 본다 — 그래서 **빈 단계의 시간 구간만** 좁혀서 되묻는다. 단계 구조는
+# 그대로 두므로, 구간마다 단계를 새로 만들게 했다가 커버리지가 되레 떨어졌던 방식과 다르다.
+FILL_SCHEMA = {
+    "type": "object",
+    "required": ["guides"],
+    "properties": {"guides": {"type": "array", "items": {
+        "type": "object",
+        "required": ["source_phrase", "phrase", "type", "what_to_show",
+                     "best_visual_timestamp", "guide_text", "importance"],
+        "properties": {
+            "source_phrase": {"type": "string"}, "phrase": {"type": "string"},
+            "type": {"enum": ["size", "thickness", "color", "state", "amount",
+                              "position", "angle", "action", "texture"]},
+            "what_to_show": {"type": "string"},
+            "best_visual_timestamp": {"type": "string"},
+            "guide_text": {"type": "string"},
+            "importance": {"type": "number"},
+        }}}},
+}
+
+FILL_PROMPT = """이 영상의 한 단계 구간만 봅니다.
+
+단계: {summary}
+설명: {detail}
+구간: {window}
+
+이 구간에 **글로만 읽으면 기준·정도·위치를 알 수 없는 표현**이 있으면 그 각각을 guides에
+담으세요. "한입 크기", "노릇노릇", "이 정도로", "여기에" 같은 것들입니다.
+없으면 guides를 빈 배열로 두세요 — 억지로 만들지 않습니다. 단순 절차 설명이나
+한 장의 정지 화면으로 확인할 수 없는 조언(힘의 세기, 내부 감각)은 대상이 아닙니다.
+
+best_visual_timestamp는 **영상 시작 기준** MM:SS이며 반드시 이 구간 안이어야 합니다.
+사람이 읽는 문자열은 {language} 언어로 씁니다. JSON만 출력합니다."""
+
+# 되묻기 호출 상한 — 25분 영상은 빈 단계가 17개까지 나온다. 긴 단계부터 채운다.
+MAX_FILL_CALLS = 8
+
+
+# 되묻기가 만들어내는 쓰레기를 출력 검사로 거른다. 프롬프트에 금지 목록을 넣는 방법은
+# 실측에서 실패했다 — 수확률은 올랐지만(57→67%) 진짜 가이드도 같이 줄어 커버리지가
+# 69%→53%로 떨어졌고, source_phrase에 타임스탬프를 넣는 새 결함까지 생겼다.
+# 아래 규칙은 채점자 두 명(서로 kappa 0.53으로 갈리는)의 라벨 모두에서
+# 쓰레기 12개를 잡고 진짜는 0개도 지우지 않았다.
+_TIMESTAMP_ONLY = re.compile(r"^\s*\d{1,2}:\d{2}(:\d{2})?\s*$")
+_NUMERIC_SPEC = re.compile(
+    r"\d+\s*(gram(s)?|g\b|kg|mg|ml|cm|mm|inch(es)?|인치|그램|밀리|%)", re.I)
+_NOT_IN_A_STILL = re.compile(
+    r"천천히|세게|살살|너무 강하|토크|매일|이틀에|두 번|번 연속|번갈아"
+    r"|slowly|too crazy|torque|every day|every other", re.I)
+
+
+def unphotographable(guide: dict) -> str:
+    """정지 화면으로 보여줄 수 없는 가이드면 이유를, 아니면 빈 문자열."""
+    source = (guide.get("source_phrase") or "").strip()
+    blob = f"{source} {guide.get('phrase', '')}"
+    if _TIMESTAMP_ONLY.match(source):
+        return "원문이 타임스탬프"
+    if _NUMERIC_SPEC.search(source):
+        return "이미 수치로 정확함"
+    if _NOT_IN_A_STILL.search(blob):
+        return "속도·힘·횟수는 한 장으로 못 보여줌"
+    return ""
+
+
+def empty_steps(data: dict) -> list:
+    """가이드가 하나도 안 붙은 단계를, 길이가 긴 순서로."""
+    covered = {g.get("step_id") for g in data.get("visual_guides", [])}
+    gaps = [s for s in data.get("steps", []) if s["id"] not in covered
+            and s.get("t_start") is not None and s.get("t_end") is not None
+            and s["t_end"] > s["t_start"]]
+    return sorted(gaps, key=lambda s: s["t_start"] - s["t_end"])
+
+
+def fill_empty_steps(data: dict, url: str, model: str, key: str,
+                     language: str, limit: int = MAX_FILL_CALLS) -> int:
+    """빈 단계의 구간만 다시 보게 해 가이드를 채운다. 추가된 개수를 돌려준다."""
+    gaps = empty_steps(data)[:limit]
+    guides = data.setdefault("visual_guides", [])
+    added = 0
+    skipped = []
+    for step in gaps:
+        window = f"{hms(step['t_start'])}~{hms(step['t_end'])}"
+        parts = [
+            {"file_data": {"file_uri": url},
+             "video_metadata": {"start_offset": {"seconds": step["t_start"]},
+                                "end_offset": {"seconds": step["t_end"]}}},
+            {"text": FILL_PROMPT.format(summary=step.get("summary", ""),
+                                        detail=step.get("detail", ""),
+                                        window=window, language=language)},
+        ]
+        try:
+            found = generate_json(parts, model, key, FILL_SCHEMA).get("guides", [])
+        except (RateLimitError, RuntimeError):
+            break                      # 남은 구간은 포기하고 지금까지 채운 것만 쓴다
+        for guide in found:
+            timestamp = mmss_to_sec(guide.get("best_visual_timestamp"))
+            if timestamp is None or not step["t_start"] <= timestamp <= step["t_end"]:
+                continue               # 구간 밖 응답은 버린다 (모델이 종종 벗어난다)
+            guide["best_visual_timestamp"] = timestamp
+            guide["step_id"] = step["id"]
+            reason = unphotographable(guide)
+            if reason:
+                skipped.append(f"{step['id']}: {guide.get('phrase','')} ({reason})")
+                continue
+            # 기존 id가 연속이라는 보장이 없다 (trim 뒤 vg-1, vg-4, vg-5) — 빈 번호를 찾는다
+            taken = {g.get("id") for g in guides}
+            nth = len(guides) + 1
+            while f"vg-{nth}" in taken:
+                nth += 1
+            guide["id"] = f"vg-{nth}"
+            guides.append(guide)
+            added += 1
+    if skipped:
+        print(f"  사진으로 못 보여줄 가이드 {len(skipped)}개 걸러냄")
+    return added
 
 
 def call_gemini(url: str, prompt: str, model: str, key: str,
@@ -277,6 +420,9 @@ def main():
                     help="시각 가이드 상한. 0이면 무제한(기본) — 애매한 표현마다 모두 만든다. "
                          "문서를 짧게 유지하고 싶을 때만 값을 준다")
     ap.add_argument("--force", action="store_true", help="캐시 무시하고 재분석")
+    ap.add_argument("--fill-gaps", action="store_true",
+                    help="가이드가 없는 단계의 구간만 다시 보게 해 채운다. "
+                         "긴 영상에서 단계는 쪼개지는데 가이드가 안 늘어나는 문제용")
     ap.add_argument("--passes", type=int, default=1,
                     help="분석 반복 횟수. 2 이상이면 실행마다 다르게 나오는 "
                          "가이드를 합쳐 더 촘촘한 문서를 만든다 (호출 비용 비례)")
@@ -334,12 +480,23 @@ def main():
             print("Gemini 무료 티어/속도 한도에 도달했습니다.")
             print(str(error))
             sys.exit(75)
+        if args.fill_gaps:
+            gaps = len(empty_steps(data))
+            added = fill_empty_steps(data, args.url, args.model, key, args.language)
+            if added:
+                # 채운 뒤 상한을 다시 적용하지 않으면 계약을 우리가 깨고 전체 실행을 버린다
+                data["visual_guides"] = renumber(
+                    trim_guides(data["visual_guides"], args.max_guides))
+            print(f"  빈 단계 {gaps}개 중 {min(gaps, MAX_FILL_CALLS)}개를 다시 봐서 "
+                  f"가이드 {added}개 추가")
+            data["_gap_fill"] = {"empty_steps": gaps, "added": added}
         data["_duration"] = duration
         data["_asset_digest"] = asset_digest(args.profile)
         data["_profile"] = args.profile
         data["_output_language"] = args.language
         data["_max_visual_guides"] = args.max_guides
         data["_model"] = args.model
+        data["visual_guides"] = order_for_reading(data["visual_guides"])
         errors, warnings = validate(data)
         if errors:
             sys.exit("분석 결과 계약 위반:\n- " + "\n- ".join(errors))
