@@ -1,0 +1,46 @@
+{
+ "evaluation_id": "2026-08-08-abstention-contract-dead-ends",
+ "review_kind": "negative_results",
+ "note": "Three attempts to fix the abstention contract ('if no candidate shows it, answer none') all failed, and the frame-signal analysis explains why. Recorded so the next person does not repeat them.",
+ "problem": {
+  "what": "4 of the 5 wrong photos in the English holdout are not mis-picks. They are guides where no candidate was usable and the model picked one anyway. Pure mis-picking among usable candidates happened once in 116 guides (0.9%).",
+  "cases": [
+   "#11 PLGmTzEGSIY vg-2 (putty knife, workbench wide shot)",
+   "#22 wRAtVLgj-wU vg-1 (supine butterfly, room wide shot)",
+   "#50 tNxa0ngtQJw vg-1 (flattened clay bead, small subject on a mat)",
+   "#60 jJWl9Kpwbno vg-2 (wick trimmer, frame full of candles)"
+  ]
+ },
+ "attempts": [
+  {
+   "idea": "Tighten the verification prompt (identifiability clause: 'too small or far to make out → false')",
+   "result": "FAILED both ways",
+   "measured": "Caught 0 of the 2 target cases; added 1 false rejection on the 34 human-judged frames.",
+   "date": "2026-08-06"
+  },
+  {
+   "idea": "Self-consistency voting — ask verification 3x, require unanimous true",
+   "result": "FAILED worse than the baseline it replaced",
+   "measured": "Blocked 0 of 4 failures (all four returned [True, True, True]); discarded 24 of 32 human-approved frames. The model's instability is noise, not an uncertainty signal: it is confidently wrong on the failures and wobbles on the correct ones.",
+   "date": "2026-08-08"
+  },
+  {
+   "idea": "Code-side frame statistics to detect wide shots (edge density, flat-area ratio, centre concentration, sharpness, contrast)",
+   "result": "FAILED — no separation",
+   "measured": "All five signals put the 4 failures inside the 10-90 percentile band of the 32 good frames, and the failures disagree with each other: #50 is the flattest frame in the set (edge 4.6, flat 0.94) while #60 is the busiest (edge 23.7).",
+   "date": "2026-08-08"
+  }
+ ],
+ "why_they_fail": {
+  "common_shape": "Every attempt either re-asks the same model that just got it wrong, or measures the image without knowing what the image is supposed to contain.",
+  "the_wall": "'Does this frame contain what the guide asks for?' is a semantic judgement. When the model is confidently wrong about it, neither re-prompting nor pixel statistics recovers the right answer. #60 proves the point: the subject fills the frame, it is just the wrong subject — no measure of 'how big is the thing' can see that.",
+  "not_one_phenomenon": "These were grouped as 'wide shots' but they are not one failure. #50 fails because the subject is tiny; #60 fails because the frame is full of the wrong object."
+ },
+ "what_actually_worked_instead": [
+  "Removing the prompt cap on guide count (coverage 43% -> 73% on long videos, 41% -> 66% overall for short)",
+  "Targeted re-query of steps with no guide (honest coverage 38% -> 69%)",
+  "1080p capture for screen recordings",
+  "All three are deterministic or structural changes, not attempts to talk the model out of a mistake."
+ ],
+ "residual_risk_is_bounded": "Wrong photos are 1-4% and the product already routes around them: auto-pick is off by default, and when on, the picker still opens for human review. A wrong photo cannot reach a document silently."
+}
